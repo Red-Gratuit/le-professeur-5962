@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel Admin - Le Professeur 59-62</title>
+    <link rel="stylesheet" href="admin.css">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="login-screen" class="login-screen">
+        <div class="login-box">
+            <img src="logo.jpg" alt="Logo" class="login-logo">
+            <h1>🎓 Panel Admin</h1>
+            <p>Le Professeur 59-62</p>
+            <input type="password" id="admin-password" placeholder="🔒 Mot de passe" />
+            <button onclick="login()">Se connecter</button>
+            <p class="error-msg" id="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Admin Panel -->
+    <div id="admin-panel" class="admin-panel" style="display: none;">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <img src="logo.jpg" alt="Logo" class="header-logo">
+                <div>
+                    <h1>Panel Admin</h1>
+                    <p>Le Professeur 59-62</p>
+                </div>
+            </div>
+            <div class="header-right">
+                <button onclick="exportData()" class="btn-export">📥 Exporter</button>
+                <button onclick="importData()" class="btn-import">📤 Importer</button>
+                <button onclick="logout()" class="btn-logout">🚪 Déconnexion</button>
+            </div>
+        </header>
+
+        <!-- Stats Dashboard -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">🌿</div>
+                <div class="stat-info">
+                    <h3 id="stup-count">0</h3>
+                    <p>Produits STUP</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🚬</div>
+                <div class="stat-info">
+                    <h3 id="tabac-count">0</h3>
+                    <p>Produits TABAC</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🍊</div>
+                <div class="stat-info">
+                    <h3 id="puff-count">0</h3>
+                    <p>Produits PUFF</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-info">
+                    <h3 id="total-count">0</h3>
+                    <p>Total Produits</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="category-tabs">
+            <button class="tab-btn active" onclick="switchCategory('stup')">🌿 STUP</button>
+            <button class="tab-btn" onclick="switchCategory('tabac')">🚬 TABAC</button>
+            <button class="tab-btn" onclick="switchCategory('puff')">🍊 PUFF</button>
+        </div>
+
+        <!-- Add Product Button -->
+        <div class="add-product-section">
+            <button onclick="openAddModal()" class="btn-add-product">
+                ➕ Ajouter un nouveau produit
+            </button>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="products-list" class="products-admin-grid"></div>
+
+        <!-- Modal Add/Edit Product -->
+        <div id="product-modal" class="modal">
+            <div class="modal-overlay" onclick="closeModal()"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="modal-title">Ajouter un produit</h2>
+                    <button onclick="closeModal()" class="modal-close">✕</button>
+                </div>
+                
+                <form id="product-form" class="product-form">
+                    <input type="hidden" id="product-id">
+                    <input type="hidden" id="edit-category">
+                    <input type="hidden" id="edit-index">
+                    
+                    <div class="form-group">
+                        <label>📋 Catégorie</label>
+                        <select id="product-category" required>
+                            <option value="stup">🌿 STUP</option>
+                            <option value="tabac">🚬 TABAC</option>
+                            <option value="puff">🍊 PUFF</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>✏️ Nom du produit</label>
+                        <input type="text" id="product-name" placeholder="Ex: 🍫STATICSIFT🍫 • PINEAPPLE 🍎" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📝 Description courte</label>
+                        <input type="text" id="product-description" placeholder="Ex: STATICSIFT de folie terps développé" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>⭐ Note (étoiles)</label>
+                        <input type="text" id="product-rating" placeholder="Ex: ⭐⭐⭐⭐⭐" value="⭐⭐⭐⭐⭐" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>📄 Détails complets</label>
+                        <textarea id="product-details" rows="6" placeholder="Description détaillée du produit..." required></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>🎬 Type de média</label>
+                        <select id="product-type" onchange="toggleMediaInput()" required>
+                            <option value="video">📹 Vidéo</option>
+                            <option value="image">🖼️ Image</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label id="media-label">🎥 URL de la vidéo</label>
+                        <input type="text" id="product-media" placeholder="Ex: videos/stup1.mp4" required>
+                        <small>Mettez le chemin relatif (ex: videos/nom.mp4 ou images/nom.jpg)</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" onclick="closeModal()" class="btn-cancel">Annuler</button>
+                        <button type="submit" class="btn-save">💾 Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Import Modal -->
+        <div id="import-modal" class="modal">
+            <div class="modal-overlay" onclick="closeImportModal()"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📤 Importer des données</h2>
+                    <button onclick="closeImportModal()" class="modal-close">✕</button>
+                </div>
+                <div class="import-content">
+                    <p>Collez le JSON exporté ici :</p>
+                    <textarea id="import-data" rows="10" placeholder='{"stup": [...], "tabac": [...], "puff": [...]}'></textarea>
+                    <button onclick="processImport()" class="btn-save">Importer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="admin.js"></script>
+</body>
+</html>
