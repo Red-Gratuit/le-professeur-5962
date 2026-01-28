@@ -27,8 +27,10 @@ let productsData = {
     puff: []
 };
 
-// Charger les produits depuis localStorage
 function loadProductsFromStorage() {
+    // FORCER LE RESET DES PRODUITS (supprimez après le test)
+    localStorage.removeItem('products_data');
+    
     const saved = localStorage.getItem('products_data');
     
     if (saved) {
@@ -39,13 +41,11 @@ function loadProductsFromStorage() {
             initDefaultProducts();
         }
     } else {
-        // Première utilisation : créer les produits par défaut
         initDefaultProducts();
     }
     
     updateCategoryCounts();
 }
-
 // Initialiser les produits par défaut
 function initDefaultProducts() {
     productsData = {
@@ -197,40 +197,44 @@ function initDefaultProducts() {
             details: "Pack complet de cigarettes premium. Marques variées disponibles :\n\n✅ Marlboro Red & Blue\n✅ Camel Blue\n✅ Lucky Strike\n✅ Winston\n✅ Et plus encore...\n\nTous formats disponibles. Livraison rapide et discrète.\n\n⭕️PRIX EN PV⭕️"
         }
     ],
-    puff: [
-        {
-            name: "🏆🥇 PIATELLA UNCLE'S FARM 🥇🏆",
-            description: "FULL EXTRACT SATISFACTION ++ 😍🔥",
-            type: "image",
-            media: "images/puff1.jpg",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🇺🇸 FULL EXTRACT - SATISFACTION MAXIMALE 🇺🇸\n\n🔥 Extraction complète de très haute qualité importée directement des USA. Satisfaction maximale absolument garantie. Notre meilleur produit puff disponible ! 🔥\n\nProduit premium pour connaisseurs exigeants.\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍊 ORANGE CRUSH EXTREME",
-            description: "Saveur orange explosive 🔥",
-            type: "image",
-            media: "images/puff2.jpg",
-            rating: "⭐⭐⭐⭐",
-            details: "🍊 ORANGE CRUSH - EXPLOSION DE SAVEURS 🍊\n\nGoût d'orange ultra intense et rafraîchissant. Très populaire auprès de nos clients fidèles.\n\n✅ Saveur fruitée authentique\n✅ Sensation fraîche durable\n✅ Qualité premium garantie\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍇 GRAPE ICE MENTHOL",
-            description: "Raisin mentholé intense 🥶",
-            type: "image",
-            media: "images/puff3.jpg",
-            rating: "⭐⭐⭐⭐",
-            details: "🍇 GRAPE ICE - FRAÎCHEUR MENTHOLÉE 🍇\n\nMélange parfait entre fruité et frais. Sensation mentholée très agréable et durable.\n\n✅ Goût raisin authentique\n✅ Fraîcheur mentholée intense\n✅ Effet longue durée\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍓 STRAWBERRY BLAST",
-            description: "Fraise ultra puissante 💥",
-            type: "image",
-            media: "images/puff4.jpg",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🍓 STRAWBERRY BLAST - EXPLOSION FRAISE 🍓\n\nSaveur fraise explosive et sucrée. Un véritable délice fruité à ne pas manquer !\n\n✅ Goût fraise ultra intense\n✅ Sucré et gourmand\n✅ Qualité premium\n\n⭕️PRIX EN PV⭕️"
-        }
-    ]
+   puff: [
+    {
+        name: "🦅🔥 FALCON 16K 🦅🔥",
+        description: "🔥 16K JNR - Saveur intense, gros nuages et sensations garanties 💨⚡🌀",
+        type: "image",
+        media: "images/puff1.jpg",
+        thumbnail: "images/puff1.jpg",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🔥 16K JNR - Saveur intense, gros nuages et sensations garanties 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🦅 Falcon 18K 🦅",
+        description: "🔥 18K JNR - Encore plus puissant, saveur explosive et nuages XXL 💨⚡🌀",
+        type: "image",
+        media: "images/puff2.jpg",
+        thumbnail: "images/puff2.jpg",
+        rating: "⭐⭐⭐⭐",
+        details: "🔥 18K JNR - Encore plus puissant, saveur explosive et nuages XXL 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🦅 Falcon 28K 🦅",
+        description: "🔥 28K JNR - Ultra puissant, saveur extrême et nuages monstrueux 💨⚡🌀",
+        type: "image",
+        media: "images/puff3.jpg",
+        thumbnail: "images/puff3.jpg",
+        rating: "⭐⭐⭐⭐",
+        details: "🔥 28K JNR - Ultra puissant, saveur extrême et nuages monstrueux 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🌀 Shisha Hookah 22K ✨",
+        description: "🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨",
+        type: "image",
+        media: "images/puff4.jpg",
+        thumbnail: "images/puff4.jpg",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨\n\n⭕️PRIX EN PV⭕️"
+    }
+]
 };
 // Sauvegarder dans localStorage
     localStorage.setItem('products_data', JSON.stringify(productsData));
@@ -668,3 +672,15 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
+// FONCTION TEMPORAIRE - À supprimer après utilisation
+function resetProducts() {
+    localStorage.removeItem('products_data');
+    location.reload();
+    showToast('✅ Produits réinitialisés !');
+}
+
+// Test : Appelez cette fonction au chargement
+window.addEventListener('load', () => {
+    // DÉCOMMENTEZ LA LIGNE CI-DESSOUS UNE SEULE FOIS
+    // resetProducts();
+});
