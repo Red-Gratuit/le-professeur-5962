@@ -525,6 +525,36 @@
     <div id="toast" class="toast"></div>
 
     <script>
+        // VOTRE Telegram ID (trouvé avec @userinfobot)
+const ADMIN_TELEGRAM_ID = 123456789; // ← REMPLACEZ PAR VOTRE VRAI ID
+
+const ADMIN_PASSWORD = 'professeur2026';
+
+function login() {
+    const password = document.getElementById('admin-password').value;
+    const errorMsg = document.getElementById('error-msg');
+    
+    // Vérifier si c'est VOUS
+    const userId = tg?.initDataUnsafe?.user?.id;
+    
+    if (userId !== ADMIN_TELEGRAM_ID) {
+        errorMsg.textContent = '❌ Accès interdit !';
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        return;
+    }
+    
+    if (password === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+        loadData();
+        showToast('✅ Bienvenue Boss !');
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    } else {
+        errorMsg.textContent = '❌ Mot de passe incorrect !';
+        document.getElementById('admin-password').value = '';
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+    }
+}
         let tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
@@ -550,22 +580,33 @@
             updateStats();
         }
 
-        function login() {
-            const password = document.getElementById('admin-password').value;
-            const errorMsg = document.getElementById('error-msg');
-            
-            if (password === ADMIN_PASSWORD) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('admin-panel').style.display = 'block';
-                loadData();
-                showToast('✅ Connexion réussie !');
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-            } else {
-                errorMsg.textContent = '❌ Mot de passe incorrect !';
-                document.getElementById('admin-password').value = '';
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-            }
-        }
+       // Votre Telegram ID (trouvez-le avec @userinfobot)
+const ADMIN_TELEGRAM_ID = LeProfesseur5962; // REMPLACEZ PAR VOTRE ID
+
+function login() {
+    const password = document.getElementById('admin-password').value;
+    const errorMsg = document.getElementById('error-msg');
+    
+    // Vérifier l'ID Telegram
+    const userId = tg?.initDataUnsafe?.user?.id;
+    
+    if (userId !== ADMIN_TELEGRAM_ID) {
+        errorMsg.textContent = '❌ Accès refusé !';
+        return;
+    }
+    
+    if (password === ADMIN_PASSWORD) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('admin-panel').style.display = 'block';
+        loadData();
+        showToast('✅ Connexion réussie !');
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    } else {
+        errorMsg.textContent = '❌ Mot de passe incorrect !';
+        document.getElementById('admin-password').value = '';
+        if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+    }
+}
 
         function logout() {
             if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
