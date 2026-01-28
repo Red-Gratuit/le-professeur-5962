@@ -8,6 +8,11 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="background-music.mp3" type="audio/mpeg">
+    </audio>
+
     <!-- Loading Screen -->
     <div id="loading-screen" class="loading-screen">
         <div class="loading-content">
@@ -18,11 +23,6 @@
             <p class="loading-text">Chargement en cours...</p>
         </div>
     </div>
-
-    <!-- Background Music -->
-    <audio id="bgMusic" loop>
-        <source src="background-music.mp3" type="audio/mpeg">
-    </audio>
 
     <!-- Particles Background -->
     <div id="particles-bg" class="particles-bg"></div>
@@ -76,17 +76,17 @@
                     <button class="category-btn active" data-category="stup" onclick="showProducts('stup', event)">
                         <span class="icon">🌿</span>
                         <span class="label">STUP</span>
-                        <span class="count">15</span>
+                        <span class="count" id="count-stup">15</span>
                     </button>
                     <button class="category-btn" data-category="tabac" onclick="showProducts('tabac', event)">
                         <span class="icon">🚬</span>
                         <span class="label">TABAC</span>
-                        <span class="count">1</span>
+                        <span class="count" id="count-tabac">1</span>
                     </button>
                     <button class="category-btn" data-category="puff" onclick="showProducts('puff', event)">
                         <span class="icon">🍊</span>
                         <span class="label">PUFF</span>
-                        <span class="count">4</span>
+                        <span class="count" id="count-puff">4</span>
                     </button>
                 </div>
 
