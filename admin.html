@@ -2,9 +2,407 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="color-scheme" content="dark">
     <title>Panel Admin - Le Professeur 59-62</title>
-    <link rel="stylesheet" href="admin.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: #0a0e27;
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Login Screen */
+        .login-screen {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .login-box {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.4);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        .login-logo {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #8a2be2;
+            margin-bottom: 20px;
+        }
+
+        .login-box h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+            background: linear-gradient(90deg, #5dade2, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-box p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 30px;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #8a2be2, #5dade2);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .error-msg {
+            color: #ff3b30;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        /* Admin Panel */
+        .admin-panel {
+            padding: 20px;
+            max-width: 100%;
+        }
+
+        .admin-header {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.4);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .header-logo {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid #8a2be2;
+            margin-bottom: 10px;
+        }
+
+        .admin-header h1 {
+            font-size: 20px;
+            background: linear-gradient(90deg, #5dade2, #8a2be2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .btn-logout {
+            margin-top: 15px;
+            padding: 12px 20px;
+            background: rgba(255, 59, 48, 0.2);
+            border: 2px solid #ff3b30;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #8a2be2;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Categories */
+        .category-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, rgba(138, 43, 226, 0.5), rgba(93, 173, 226, 0.4));
+            border-color: #8a2be2;
+        }
+
+        /* Add Button */
+        .btn-add-product {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #8a2be2, #5dade2);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        /* Products List */
+        .products-admin-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .product-admin-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .product-admin-preview {
+            width: 100%;
+            height: 150px;
+            background: rgba(138, 43, 226, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .product-admin-preview video,
+        .product-admin-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .product-admin-info {
+            padding: 15px;
+        }
+
+        .product-admin-name {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .product-admin-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+        }
+
+        .product-admin-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-edit, .btn-delete {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background: rgba(93, 173, 226, 0.3);
+            color: #5dade2;
+            border: 2px solid #5dade2;
+        }
+
+        .btn-delete {
+            background: rgba(255, 59, 48, 0.3);
+            color: #ff3b30;
+            border: 2px solid #ff3b30;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: block;
+        }
+
+        .modal-content {
+            background: #1a1a3e;
+            border: 2px solid rgba(138, 43, 226, 0.5);
+            border-radius: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #8a2be2;
+            font-size: 18px;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: #fff;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(138, 43, 226, 0.3);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-cancel, .btn-save {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, #8a2be2, #5dade2);
+            color: #fff;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(150px);
+            background: linear-gradient(135deg, #8a2be2, #5dade2);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 15px;
+            z-index: 10000;
+            font-weight: 600;
+            transition: transform 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+        }
+    </style>
 </head>
 <body>
     <!-- Login Screen -->
@@ -21,156 +419,304 @@
 
     <!-- Admin Panel -->
     <div id="admin-panel" class="admin-panel" style="display: none;">
-        <!-- Header -->
-        <header class="admin-header">
-            <div class="header-left">
-                <img src="logo.jpg" alt="Logo" class="header-logo">
-                <div>
-                    <h1>Panel Admin</h1>
-                    <p>Le Professeur 59-62</p>
-                </div>
-            </div>
-            <div class="header-right">
-                <button onclick="exportData()" class="btn-export">📥 Exporter</button>
-                <button onclick="importData()" class="btn-import">📤 Importer</button>
-                <button onclick="logout()" class="btn-logout">🚪 Déconnexion</button>
-            </div>
-        </header>
+        <div class="admin-header">
+            <img src="logo.jpg" alt="Logo" class="header-logo">
+            <h1>Panel Admin</h1>
+            <p style="color: rgba(255,255,255,0.7); font-size: 14px;">Le Professeur 59-62</p>
+            <button onclick="logout()" class="btn-logout">🚪 Déconnexion</button>
+        </div>
 
-        <!-- Stats Dashboard -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon">🌿</div>
-                <div class="stat-info">
-                    <h3 id="stup-count">0</h3>
-                    <p>Produits STUP</p>
-                </div>
+                <div class="stat-value" id="stup-count">0</div>
+                <div class="stat-label">STUP</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🚬</div>
-                <div class="stat-info">
-                    <h3 id="tabac-count">0</h3>
-                    <p>Produits TABAC</p>
-                </div>
+                <div class="stat-value" id="tabac-count">0</div>
+                <div class="stat-label">TABAC</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">🍊</div>
-                <div class="stat-info">
-                    <h3 id="puff-count">0</h3>
-                    <p>Produits PUFF</p>
-                </div>
+                <div class="stat-value" id="puff-count">0</div>
+                <div class="stat-label">PUFF</div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon">📦</div>
-                <div class="stat-info">
-                    <h3 id="total-count">0</h3>
-                    <p>Total Produits</p>
-                </div>
+                <div class="stat-value" id="total-count">0</div>
+                <div class="stat-label">Total</div>
             </div>
         </div>
 
-        <!-- Category Tabs -->
         <div class="category-tabs">
             <button class="tab-btn active" onclick="switchCategory('stup')">🌿 STUP</button>
             <button class="tab-btn" onclick="switchCategory('tabac')">🚬 TABAC</button>
             <button class="tab-btn" onclick="switchCategory('puff')">🍊 PUFF</button>
         </div>
 
-        <!-- Add Product Button -->
-        <div class="add-product-section">
-            <button onclick="openAddModal()" class="btn-add-product">
-                ➕ Ajouter un nouveau produit
-            </button>
-        </div>
+        <button onclick="openAddModal()" class="btn-add-product">➕ Ajouter un produit</button>
 
-        <!-- Products Grid -->
         <div id="products-list" class="products-admin-grid"></div>
+    </div>
 
-        <!-- Modal Add/Edit Product -->
-        <div id="product-modal" class="modal">
-            <div class="modal-overlay" onclick="closeModal()"></div>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2 id="modal-title">Ajouter un produit</h2>
-                    <button onclick="closeModal()" class="modal-close">✕</button>
-                </div>
+    <!-- Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Ajouter un produit</h2>
+                <button onclick="closeModal()" class="modal-close">✕</button>
+            </div>
+            
+            <form id="product-form">
+                <input type="hidden" id="edit-category">
+                <input type="hidden" id="edit-index">
                 
-                <form id="product-form" class="product-form">
-                    <input type="hidden" id="product-id">
-                    <input type="hidden" id="edit-category">
-                    <input type="hidden" id="edit-index">
-                    
-                    <div class="form-group">
-                        <label>📋 Catégorie</label>
-                        <select id="product-category" required>
-                            <option value="stup">🌿 STUP</option>
-                            <option value="tabac">🚬 TABAC</option>
-                            <option value="puff">🍊 PUFF</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label>✏️ Nom du produit</label>
-                        <input type="text" id="product-name" placeholder="Ex: 🍫STATICSIFT🍫 • PINEAPPLE 🍎" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>📝 Description courte</label>
-                        <input type="text" id="product-description" placeholder="Ex: STATICSIFT de folie terps développé" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>⭐ Note (étoiles)</label>
-                        <input type="text" id="product-rating" placeholder="Ex: ⭐⭐⭐⭐⭐" value="⭐⭐⭐⭐⭐" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label>📄 Détails complets</label>
-                        <textarea id="product-details" rows="6" placeholder="Description détaillée du produit..." required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label>🎬 Type de média</label>
-                        <select id="product-type" onchange="toggleMediaInput()" required>
-                            <option value="video">📹 Vidéo</option>
-                            <option value="image">🖼️ Image</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label id="media-label">🎥 URL de la vidéo</label>
-                        <input type="text" id="product-media" placeholder="Ex: videos/stup1.mp4" required>
-                        <small>Mettez le chemin relatif (ex: videos/nom.mp4 ou images/nom.jpg)</small>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" onclick="closeModal()" class="btn-cancel">Annuler</button>
-                        <button type="submit" class="btn-save">💾 Enregistrer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Import Modal -->
-        <div id="import-modal" class="modal">
-            <div class="modal-overlay" onclick="closeImportModal()"></div>
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>📤 Importer des données</h2>
-                    <button onclick="closeImportModal()" class="modal-close">✕</button>
+                <div class="form-group">
+                    <label>📋 Catégorie</label>
+                    <select id="product-category" required>
+                        <option value="stup">🌿 STUP</option>
+                        <option value="tabac">🚬 TABAC</option>
+                        <option value="puff">🍊 PUFF</option>
+                    </select>
                 </div>
-                <div class="import-content">
-                    <p>Collez le JSON exporté ici :</p>
-                    <textarea id="import-data" rows="10" placeholder='{"stup": [...], "tabac": [...], "puff": [...]}'></textarea>
-                    <button onclick="processImport()" class="btn-save">Importer</button>
+
+                <div class="form-group">
+                    <label>✏️ Nom</label>
+                    <input type="text" id="product-name" placeholder="Nom du produit" required>
                 </div>
-            </div>
+
+                <div class="form-group">
+                    <label>📝 Description</label>
+                    <input type="text" id="product-description" placeholder="Description courte" required>
+                </div>
+
+                <div class="form-group">
+                    <label>⭐ Note</label>
+                    <input type="text" id="product-rating" value="⭐⭐⭐⭐⭐" required>
+                </div>
+
+                <div class="form-group">
+                    <label>📄 Détails</label>
+                    <textarea id="product-details" placeholder="Détails complets..." required></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>🎬 Type</label>
+                    <select id="product-type" required>
+                        <option value="video">📹 Vidéo</option>
+                        <option value="image">🖼️ Image</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>🎥 URL Média</label>
+                    <input type="text" id="product-media" placeholder="videos/nom.mp4" required>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" onclick="closeModal()" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save">💾 Enregistrer</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Toast Notification -->
     <div id="toast" class="toast"></div>
 
-    <script src="admin.js"></script>
+    <script>
+        // Initialize Telegram WebApp
+        let tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.setHeaderColor('#0a0e27');
+            tg.setBackgroundColor('#0a0e27');
+        }
+
+        const ADMIN_PASSWORD = 'professeur2026';
+        let currentCategory = 'stup';
+        let productsData = { stup: [], tabac: [], puff: [] };
+
+        function loadData() {
+            const saved = localStorage.getItem('products_data');
+            if (saved) {
+                productsData = JSON.parse(saved);
+            }
+            updateStats();
+            renderProducts();
+        }
+
+        function saveData() {
+            localStorage.setItem('products_data', JSON.stringify(productsData));
+            updateStats();
+        }
+
+        function login() {
+            const password = document.getElementById('admin-password').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            if (password === ADMIN_PASSWORD) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+                loadData();
+                showToast('✅ Connexion réussie !');
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            } else {
+                errorMsg.textContent = '❌ Mot de passe incorrect !';
+                document.getElementById('admin-password').value = '';
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+            }
+        }
+
+        function logout() {
+            if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+                location.reload();
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('stup-count').textContent = productsData.stup.length;
+            document.getElementById('tabac-count').textContent = productsData.tabac.length;
+            document.getElementById('puff-count').textContent = productsData.puff.length;
+            const total = productsData.stup.length + productsData.tabac.length + productsData.puff.length;
+            document.getElementById('total-count').textContent = total;
+        }
+
+        function switchCategory(category) {
+            currentCategory = category;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderProducts();
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+        }
+
+        function renderProducts() {
+            const container = document.getElementById('products-list');
+            const products = productsData[currentCategory];
+            
+            if (products.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding:40px; color: rgba(255,255,255,0.5);">Aucun produit</p>';
+                return;
+            }
+            
+            container.innerHTML = products.map((product, index) => `
+                <div class="product-admin-card">
+                    <div class="product-admin-preview">
+                        ${product.type === 'video' ? 
+                            `<video muted loop autoplay playsinline><source src="${product.media}" type="video/mp4"></video>` :
+                            `<img src="${product.media}" alt="${product.name}">`
+                        }
+                    </div>
+                    <div class="product-admin-info">
+                        <div class="product-admin-name">${product.name}</div>
+                        <div class="product-admin-desc">${product.description}</div>
+                        <div class="product-admin-rating" style="color: #ffd700; margin-bottom: 15px;">${product.rating}</div>
+                        <div class="product-admin-actions">
+                            <button class="btn-edit" onclick="editProduct('${currentCategory}', ${index})">✏️ Modifier</button>
+                            <button class="btn-delete" onclick="deleteProduct('${currentCategory}', ${index})">🗑️ Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function openAddModal() {
+            document.getElementById('modal-title').textContent = 'Ajouter un produit';
+            document.getElementById('product-form').reset();
+            document.getElementById('edit-category').value = '';
+            document.getElementById('edit-index').value = '';
+            document.getElementById('product-category').value = currentCategory;
+            document.getElementById('product-modal').classList.add('show');
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function editProduct(category, index) {
+            const product = productsData[category][index];
+            document.getElementById('modal-title').textContent = 'Modifier le produit';
+            document.getElementById('edit-category').value = category;
+            document.getElementById('edit-index').value = index;
+            document.getElementById('product-category').value = category;
+            document.getElementById('product-name').value = product.name;
+            document.getElementById('product-description').value = product.description;
+            document.getElementById('product-rating').value = product.rating;
+            document.getElementById('product-details').value = product.details;
+            document.getElementById('product-type').value = product.type;
+            document.getElementById('product-media').value = product.media;
+            document.getElementById('product-modal').classList.add('show');
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        }
+
+        function deleteProduct(category, index) {
+            if (confirm('Voulez-vous vraiment supprimer ce produit ?')) {
+                productsData[category].splice(index, 1);
+                saveData();
+                renderProducts();
+                showToast('🗑️ Produit supprimé !');
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('product-modal').classList.remove('show');
+        }
+
+        document.getElementById('product-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const editCategory = document.getElementById('edit-category').value;
+            const editIndex = document.getElementById('edit-index').value;
+            
+            const product = {
+                name: document.getElementById('product-name').value,
+                description: document.getElementById('product-description').value,
+                rating: document.getElementById('product-rating').value,
+                details: document.getElementById('product-details').value,
+                type: document.getElementById('product-type').value,
+                media: document.getElementById('product-media').value,
+                thumbnail: document.getElementById('product-media').value
+            };
+            
+            const targetCategory = document.getElementById('product-category').value;
+            
+            if (editCategory && editIndex !== '') {
+                if (editCategory !== targetCategory) {
+                    productsData[editCategory].splice(editIndex, 1);
+                    productsData[targetCategory].push(product);
+                } else {
+                    productsData[editCategory][editIndex] = product;
+                }
+                showToast('✅ Produit modifié !');
+            } else {
+                productsData[targetCategory].push(product);
+                showToast('✅ Produit ajouté !');
+            }
+            
+            saveData();
+            
+            if (targetCategory !== currentCategory) {
+                currentCategory = targetCategory;
+                document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+                const tabs = document.querySelectorAll('.tab-btn');
+                tabs[targetCategory === 'stup' ? 0 : targetCategory === 'tabac' ? 1 : 2].classList.add('active');
+            }
+            
+            renderProducts();
+            closeModal();
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        });
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        document.getElementById('admin-password')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') login();
+        });
+
+        loadData();
+    </script>
 </body>
 </html>
