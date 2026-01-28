@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Le Professeur 59-62</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <img src="logo.jpg" alt="Logo" class="loading-logo">
+            <h1 class="loading-title">Le Professeur</h1>
+            <p class="loading-subtitle">59-62</p>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Chargement en cours...</p>
+        </div>
+    </div>
+
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="background-music.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Particles Background -->
+    <div id="particles-bg" class="particles-bg"></div>
+
+    <div id="app" style="opacity: 0;">
+        <!-- Header -->
+        <header>
+            <div class="header-content">
+                <img src="logo.jpg" alt="Logo" class="header-logo" id="headerLogo">
+                <div class="header-text">
+                    <h1 id="headerTitle">Le Professeur</h1>
+                    <span class="header-subtitle">59-62</span>
+                </div>
+            </div>
+            <button class="music-toggle" onclick="toggleMusic()" id="musicBtn" title="Musique">
+                🔇
+            </button>
+            <button class="share-btn" onclick="shareApp()" title="Partager">
+                📤
+            </button>
+            <button class="close-btn" onclick="closeApp()" title="Fermer">
+                ✕
+            </button>
+        </header>
+
+        <!-- Toast Notification -->
+        <div id="toast" class="toast"></div>
+
+        <!-- Main Content Swipeable -->
+        <div class="swipe-container" id="swipe-container">
+            <!-- Menu Page -->
+            <div class="page active" data-page="menu">
+                <div class="banner">
+                    <p id="bannerText">🚀 Livraisons rapides • 💎 Qualité premium, prix imbattables • 🔒 Commandes sécurisées 24/7 • ⚡ Livraison express</p>
+                </div>
+                
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-icon">👥</span>
+                        <span class="stat-value" id="totalOrders">1250+</span>
+                        <span class="stat-label">Clients satisfaits</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-icon">⭐</span>
+                        <span class="stat-value">4.9/5</span>
+                        <span class="stat-label">Note moyenne</span>
+                    </div>
+                </div>
+
+                <div class="category-buttons">
+                    <button class="category-btn active" data-category="stup" onclick="showProducts('stup', event)">
+                        <span class="icon">🌿</span>
+                        <span class="label">STUP</span>
+                        <span class="count">15</span>
+                    </button>
+                    <button class="category-btn" data-category="tabac" onclick="showProducts('tabac', event)">
+                        <span class="icon">🚬</span>
+                        <span class="label">TABAC</span>
+                        <span class="count">1</span>
+                    </button>
+                    <button class="category-btn" data-category="puff" onclick="showProducts('puff', event)">
+                        <span class="icon">🍊</span>
+                        <span class="label">PUFF</span>
+                        <span class="count">4</span>
+                    </button>
+                </div>
+
+                <div id="products-container" class="products-grid"></div>
+            </div>
+
+            <!-- Info Page -->
+            <div class="page" data-page="info">
+                <div class="info-card animate-in">
+                    <div class="info-icon">ℹ️</div>
+                    <h2>Le Professeur — Commandes sécurisées et flexibles</h2>
+                    
+                    <div class="info-content">
+                        <div class="info-highlight">
+                            <p><strong>SUR PLACE 📍 / LIVRAISON RAPIDE 🚚 / ENVOIE MONDIAL RELAY 📦 / PRIX IMBATTABLE 💰</strong></p>
+                        </div>
+
+                        <h3>🕐 Horaires</h3>
+                        <div class="feature-box">
+                            <p><strong>⏰ Horaire livraisons :</strong> 16h - 23h</p>
+                            <p><strong>📍 Horaire sur place :</strong> 16h - 00h</p>
+                        </div>
+
+                        <h3>📦 Envoie Colis</h3>
+                        <div class="feature-box">
+                            <p>✅ Vérification d'identité</p>
+                            <p>💳 Modes de paiement : <strong>CASH, BTC...</strong></p>
+                        </div>
+                        
+                        <h3>📋 Pour un traitement rapide, veuillez fournir :</h3>
+                        <div class="required-info">
+                            <p>• Vérification d'identité (nouveaux clients)</p>
+                            <p>• L'adresse de livraison complète</p>
+                            <p>• Vos disponibilités pour la réception</p>
+                            <p>• Les détails de votre commande</p>
+                        </div>
+
+                        <h3>📍 Meet-Up</h3>
+                        <div class="feature-box">
+                            <p>Plusieurs Meet-Up à votre disposition</p>
+                            <p>En privée pour + d'informations...</p>
+                        </div>
+
+                        <h3>🚚 Livraison</h3>
+                        <div class="feature-box">
+                            <p>Livraison disponible dans tous les 59/62 🚀</p>
+                        </div>
+
+                        <h3>⚡ Pourquoi nous choisir ?</h3>
+                        <div class="why-us-grid">
+                            <div class="why-us-item">
+                                <span class="why-icon">🔒</span>
+                                <p><strong>Discrétion garantie</strong></p>
+                            </div>
+                            <div class="why-us-item">
+                                <span class="why-icon">⚡</span>
+                                <p><strong>Livraison rapide</strong></p>
+                            </div>
+                            <div class="why-us-item">
+                                <span class="why-icon">💎</span>
+                                <p><strong>Qualité premium</strong></p>
+                            </div>
+                            <div class="why-us-item">
+                                <span class="why-icon">🎯</span>
+                                <p><strong>Service 24/7</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Page -->
+            <div class="page" data-page="contact">
+                <div class="contact-card animate-in">
+                    <h2>Contact</h2>
+                    <p class="contact-subtitle">Pour toute commande ou question, contactez-nous via nos réseaux sécurisés.</p>
+                    
+                    <div class="contact-buttons">
+                        <button class="social-btn snapchat-btn" onclick="openSnapchat1()">
+                            <span class="social-icon">👻</span>
+                            <div class="social-info">
+                                <div class="social-name">Snapchat</div>
+                                <div class="social-label">PRINCIPAL - pfsrtr</div>
+                            </div>
+                            <span class="social-badge">En ligne</span>
+                        </button>
+                        
+                        <button class="social-btn snapchat-btn" onclick="openSnapchat2()">
+                            <span class="social-icon">👻</span>
+                            <div class="social-info">
+                                <div class="social-name">Snapchat</div>
+                                <div class="social-label">SECOURS - prfsec</div>
+                            </div>
+                            <span class="social-badge">Disponible</span>
+                        </button>
+
+                        <button class="social-btn signal-btn" onclick="openSignal()">
+                            <span class="social-icon">📱</span>
+                            <div class="social-info">
+                                <div class="social-name">Signal</div>
+                                <div class="social-label">SÉCURISÉ</div>
+                            </div>
+                            <span class="social-badge">Crypté</span>
+                        </button>
+
+                        <button class="social-btn potato-btn" onclick="openPotato()">
+                            <span class="social-icon">🥔</span>
+                            <div class="social-info">
+                                <div class="social-name">Canal Potato</div>
+                                <div class="social-label">CANAL OFFICIEL</div>
+                            </div>
+                            <span class="social-badge">Public</span>
+                        </button>
+                    </div>
+
+                    <div class="contact-footer">
+                        <p>⚡ Réponse garantie sous 5 minutes</p>
+                        <p>🔒 Toutes vos données sont sécurisées</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Modal -->
+        <div id="product-modal" class="modal">
+            <div class="modal-overlay" onclick="closeModal()"></div>
+            <div class="modal-content">
+                <button class="modal-close" onclick="closeModal()">✕</button>
+                <button class="modal-favorite" onclick="toggleFavorite()" id="favoriteBtn">
+                    ⭐
+                </button>
+                <div id="modal-body"></div>
+                <div class="modal-actions">
+                    <button class="btn-primary" onclick="contactForProduct()">
+                        📞 Contacter pour commander
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-btn active" data-page="menu" onclick="navigateToPage('menu', event)">
+                <span class="nav-icon">📱</span>
+                <span class="nav-label">Menu</span>
+            </button>
+            <button class="nav-btn" data-page="info" onclick="navigateToPage('info', event)">
+                <span class="nav-icon">ℹ️</span>
+                <span class="nav-label">Infos</span>
+            </button>
+            <button class="nav-btn" data-page="contact" onclick="navigateToPage('contact', event)">
+                <span class="nav-icon">👤</span>
+                <span class="nav-label">Contact</span>
+            </button>
+            <button class="nav-btn action-btn" onclick="orderNow()">
+                <span class="nav-icon">👍</span>
+            </button>
+        </nav>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
