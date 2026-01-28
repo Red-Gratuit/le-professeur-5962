@@ -672,15 +672,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
-// FONCTION TEMPORAIRE - À supprimer après utilisation
-function resetProducts() {
-    localStorage.removeItem('products_data');
-    location.reload();
-    showToast('✅ Produits réinitialisés !');
-}
-
-// Test : Appelez cette fonction au chargement
-window.addEventListener('load', () => {
-    // DÉCOMMENTEZ LA LIGNE CI-DESSOUS UNE SEULE FOIS
-    // resetProducts();
-});
