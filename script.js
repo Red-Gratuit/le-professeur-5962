@@ -184,7 +184,7 @@ function initDefaultProducts() {
             thumbnail: "videos/stup15.mp4",
             rating: "⭐⭐⭐⭐⭐",
             details: "🔥Un DRYSIFT de la fameuse farm MOUNTAIN GIANTS de folie terps développer comme il faut, encore glassy du feu 🔥\n\n• ICE CREAM CAKE 🧁\n\nQUANTITÉS DISPO : 10G ⛰️ 25G ⛰️ 50G ⛰️ 100G ⛰️ 200G ⛰️ 500G ⛰️ 1K⛰️+PV\n\n⭕️PRIX EN PV⭕️"
-        }
+        },
 {
         name: "🟣 F.F WHOLE PLANT ROEMER FARMS 🟣",
         description: "PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019",
