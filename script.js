@@ -185,6 +185,60 @@ function initDefaultProducts() {
             rating: "⭐⭐⭐⭐⭐",
             details: "🔥Un DRYSIFT de la fameuse farm MOUNTAIN GIANTS de folie terps développer comme il faut, encore glassy du feu 🔥\n\n• ICE CREAM CAKE 🧁\n\nQUANTITÉS DISPO : 10G ⛰️ 25G ⛰️ 50G ⛰️ 100G ⛰️ 200G ⛰️ 500G ⛰️ 1K⛰️+PV\n\n⭕️PRIX EN PV⭕️"
         }
+{
+        name: "🟣 F.F WHOLE PLANT ROEMER FARMS 🟣",
+        description: "PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019",
+        type: "video",
+        media: "videos/stup16.mp4",
+        thumbnail: "videos/stup16.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 FAMILY'S FARMEURS 🟣\n\n✅ VARIÉTÉS ✅\n• PURPLE MOLT'S 🧬\n\n🧬 Les amis ce WHOLE PLANT FRESH FROZEN est tout simplement une dinguerie, sa méthode de traitement assez spécifique de fresh Frozen qui consiste à récolter entièrement (fleurs, feuille, tige) non séché et directement mis en congélation après la récolte fait de ce produit un produit à haute teneur en THC et d'une pureté légendaire 🧬\n\nROEMER FARMS : Famille de cannaculteur connu et reconnu depuis 2019 🌾\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🇺🇸 CALI BAG'S DOJA 🇺🇸",
+        description: "DAWG BREATH X COFFIN CANDY 🍭",
+        type: "video",
+        media: "videos/stup17.mp4",
+        thumbnail: "videos/stup17.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🇺🇸 CALI BAG'S DOJA 🇺🇸\n\n✅ VARIÉTÉS ✅\n• DAWG BREATH X COFFIN CANDY 🍭\n\n🔥 Plus besoin de vous présenter cette fameuse farm plus que connue, DOJA nous a sorti une Cali à la fois fruitée/sucrée et choquante du 12/10 🔥\n\nDISPO PAR : 1Bag(3.5g)🛍️2Bag's🛍️5Bag's🛍️10Bag's🛍️25Bag's🛍️+ PV\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸",
+        description: "WATERMELON SKITTLEZ 🍉🍦",
+        type: "video",
+        media: "videos/stup18.mp4",
+        thumbnail: "videos/stup18.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• WATERMELON SKITTLEZ 🍉🍦\n\n🔥 Une cali unique et spectaculaire, la WATERMELON SKITTLEZ est un mélange de bonbon et de note de fond boisé, un régal pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸",
+        description: "GAS FACE ⛽️",
+        type: "video",
+        media: "videos/stup19.mp4",
+        thumbnail: "videos/stup19.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GAS FACE ⛽️\n\n🔥 Une cali unique et spectaculaire, la GAS FACE est un mélange de bonbon et de note de fond boisé, un régal pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🇺🇸 HASH EXTRACT FULL MELT 🇺🇸",
+        description: "BLUEBERRY 🫐",
+        type: "video",
+        media: "videos/stup20.mp4",
+        thumbnail: "videos/stup20.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🇺🇸 HASH EXTRACT FULL MELT 🇺🇸\n\n✅ VARIÉTÉS ✅\n• BLUEBERRY 🫐\n\n🔥 Les amis le FULL MELT est un Hash qui fond complètement quand on le chauffe, sans laisser de résidus solides ni de matière végétale brûlée. On considère généralement que le FULL MELT correspond aux meilleurs grades de Hash, souvent noté 5 à 6 étoiles sur une échelle de qualité 🔥\n\n‼️ Fort goût de myrtille, défonce choquante ‼️\n\nDISPO PAR : 1G🫐3G🫐5G🫐10G🫐25G🫐50G🫐100G🫐300G🫐500G🫐1K🫐\n\n⭕️PRIX EN PV⭕️"
+    },
+    {
+        name: "🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸",
+        description: "GUAVA 🥭",
+        type: "video",
+        media: "videos/stup21.mp4",
+        thumbnail: "videos/stup21.mp4",
+        rating: "⭐⭐⭐⭐⭐",
+        details: "🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GUAVA 🥭\n\n🔥 La voilà les connaisseurs savent déjà ahah la Moonrock de la farm EAGLES BEAN'S a fait des ravages 🔥\n\nLes revendeurs venez PV ça vous arrange 😉\n\nDISPO PAR : 1G🌒2G🌒5G🌒10G🌒25G🌒50G🌒100G🌒200G🌒500G🌒1K🌒\n\n⭕️PRIX EN PV⭕️"
+    }
     ],
     tabac: [
         {
