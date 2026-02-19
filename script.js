@@ -24,43 +24,72 @@ let productsData = { stup: [], tabac: [], puff: [] };
 // ============ CHARGEMENT PRODUITS (SERVEUR) ============
 async function loadProductsFromStorage() {
     try {
-        const response = await fetch('/api/products');
-        if (response.ok) {
-            const data = await response.json();
-            if (data && (data.stup || data.tabac || data.puff)) {
-                productsData = data;
-            } else {
-                initDefaultProducts();
-            }
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        if (data?.stup) {
+            productsData = data;
         } else {
             initDefaultProducts();
         }
     } catch(e) {
-        console.log('Erreur chargement serveur, fallback localStorage');
-        const saved = localStorage.getItem('products_data');
-        if (saved) {
-            try { productsData = JSON.parse(saved); }
-            catch(e2) { initDefaultProducts(); }
-        } else {
-            initDefaultProducts();
-        }
+        initDefaultProducts();
     }
     updateCategoryCounts();
 }
 
-// ============ SAUVEGARDE PRODUITS (SERVEUR) ============
 async function saveProducts() {
+    // Appelé mais la vraie sauvegarde se fait dans saveProduct()
+    // On garde juste le localStorage en backup
+    localStorage.setItem('products_data', JSON.stringify(productsData));
+}
+
+// Remplacez saveProduct() — envoie le fichier au serveur
+async function saveProduct() {
+    const name = document.getElementById('f-name').value.trim();
+    const desc = document.getElementById('f-desc').value.trim();
+    const details = document.getElementById('f-details').value.trim();
+    const rating = document.getElementById('f-rating').value;
+    const type = document.getElementById('f-type').value;
+    const mediaUrl = document.getElementById('f-media-url').value.trim();
+    const fileInput = document.getElementById('f-file-input'); // input type=file
+    const catBtn = document.querySelector('.admin-select-btn[data-cat].active');
+    const targetCat = catBtn ? catBtn.dataset.cat : adminCurrentCat;
+    const editIdx = document.getElementById('edit-idx').value;
+    const editCat = document.getElementById('edit-cat-origin').value;
+
+    if (!name) { adminShowToast('⚠️ Entrez un nom !'); return; }
+    if (!desc) { adminShowToast('⚠️ Entrez une description !'); return; }
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('description', desc);
+    formData.append('details', details);
+    formData.append('rating', rating);
+    formData.append('type', type);
+    formData.append('category', targetCat);
+    formData.append('mediaUrl', mediaUrl);
+    formData.append('editIdx', editIdx);
+    formData.append('editCat', editCat);
+
+    if (fileInput?.files[0]) {
+        formData.append('file', fileInput.files[0]);
+    }
+
     try {
-        await fetch('/api/products', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(productsData)
-        });
-        // Backup localStorage aussi
-        localStorage.setItem('products_data', JSON.stringify(productsData));
+        adminShowToast('⏳ Sauvegarde...');
+        const res = await fetch('/api/products', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (data.success) {
+            await loadProductsFromStorage();
+            adminCurrentCat = targetCat;
+            adminRenderProducts();
+            adminRefreshStats();
+            updateCategoryCounts();
+            closeProductForm();
+            adminShowToast('✅ Produit sauvegardé !');
+        }
     } catch(e) {
-        console.log('Erreur sauvegarde serveur, fallback localStorage');
-        localStorage.setItem('products_data', JSON.stringify(productsData));
+        adminShowToast('❌ Erreur sauvegarde !');
     }
 }
 
@@ -494,11 +523,12 @@ function editProduct(cat, idx) {
     document.getElementById('product-form-modal').style.display = 'block';
 }
 
+// Remplacez deleteProduct()
 function deleteProduct(cat, idx) {
-    tg.showConfirm('🗑️ Supprimer ce produit ?', (ok) => {
+    tg.showConfirm('🗑️ Supprimer ce produit ?', async (ok) => {
         if (ok) {
-            productsData[cat].splice(idx, 1);
-            saveProducts();
+            await fetch(`/api/products/${cat}/${idx}`, { method: 'DELETE' });
+            await loadProductsFromStorage();
             adminRenderProducts();
             adminRefreshStats();
             updateCategoryCounts();
