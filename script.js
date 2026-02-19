@@ -21,7 +21,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 let adminCurrentCat = 'stup';
 let productsData = { stup: [], tabac: [], puff: [] };
 
-// ============ CHARGEMENT PRODUITS (JSONBIN) ============
+// ============ CHARGEMENT PRODUITS ============
 async function loadProductsFromStorage() {
     try {
         const res = await fetch('/api/products');
@@ -513,11 +513,12 @@ function setRating(n) {
     });
 }
 
-function handleFileUpload(input) {
+// ============ UPLOAD CLOUDINARY ============
+async function handleFileUpload(input) {
     const file = input.files[0];
     if (!file) return;
     const statusEl = document.getElementById('upload-status');
-    statusEl.textContent = '⏳ Chargement...';
+    statusEl.textContent = '⏳ Upload en cours...';
 
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
@@ -528,19 +529,36 @@ function handleFileUpload(input) {
     document.getElementById('f-type').value = isImage ? 'image' : 'video';
 
     const reader = new FileReader();
-    reader.onload = (e) => {
-        const data = e.target.result;
-        document.getElementById('f-media').value = data;
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
         const preview = document.getElementById('upload-preview');
-        if (isImage) {
-            preview.innerHTML = `<img src="${data}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;">`;
-            statusEl.textContent = `✅ Image chargée (${(file.size/1024).toFixed(0)} Ko)`;
-        } else {
-            preview.innerHTML = `<video src="${data}" style="width:100%;max-height:160px;border-radius:8px;" controls muted></video>`;
-            statusEl.textContent = `✅ Vidéo chargée (${(file.size/1024/1024).toFixed(1)} Mo)`;
+
+        try {
+            const res = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ file: base64, type: isImage ? 'image' : 'video' })
+            });
+            const data = await res.json();
+
+            if (data.success && data.url) {
+                document.getElementById('f-media').value = data.url;
+                document.getElementById('f-media-url').value = data.url;
+                if (isImage) {
+                    preview.innerHTML = `<img src="${data.url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;">`;
+                    statusEl.textContent = `✅ Image uploadée !`;
+                } else {
+                    preview.innerHTML = `<video src="${data.url}" style="width:100%;max-height:160px;border-radius:8px;" controls muted></video>`;
+                    statusEl.textContent = `✅ Vidéo uploadée !`;
+                }
+            } else {
+                statusEl.textContent = '❌ Erreur upload !';
+                console.log('Upload error:', data);
+            }
+        } catch(e) {
+            statusEl.textContent = '❌ Erreur connexion !';
         }
     };
-    reader.onerror = () => { statusEl.textContent = '❌ Erreur de chargement'; };
     reader.readAsDataURL(file);
 }
 
@@ -552,7 +570,7 @@ async function saveProduct() {
     const type = document.getElementById('f-type').value;
     const mediaData = document.getElementById('f-media').value;
     const mediaUrl = document.getElementById('f-media-url').value.trim();
-    const media = mediaData || mediaUrl;
+    const media = mediaUrl || mediaData;
     const catBtn = document.querySelector('.admin-select-btn[data-cat].active');
     const targetCat = catBtn ? catBtn.dataset.cat : adminCurrentCat;
     const editIdx = document.getElementById('edit-idx').value;
@@ -561,6 +579,12 @@ async function saveProduct() {
     if (!name) { adminShowToast('⚠️ Entrez un nom !'); return; }
     if (!desc) { adminShowToast('⚠️ Entrez une description !'); return; }
     if (!media) { adminShowToast('⚠️ Ajoutez une photo/vidéo !'); return; }
+
+    // Bloquer base64 — doit être uploadé via Cloudinary d'abord
+    if (media.startsWith('data:')) {
+        adminShowToast('⚠️ Attendez la fin de l\'upload !');
+        return;
+    }
 
     const product = { name, description: desc, details, rating, type, media, thumbnail: media };
 
