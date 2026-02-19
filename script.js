@@ -21,7 +21,7 @@ let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 let adminCurrentCat = 'stup';
 let productsData = { stup: [], tabac: [], puff: [] };
 
-// ============ CHARGEMENT PRODUITS (SERVEUR) ============
+// ============ CHARGEMENT PRODUITS (JSONBIN) ============
 async function loadProductsFromStorage() {
     try {
         const res = await fetch('/api/products');
@@ -38,58 +38,14 @@ async function loadProductsFromStorage() {
 }
 
 async function saveProducts() {
-    // Appelé mais la vraie sauvegarde se fait dans saveProduct()
-    // On garde juste le localStorage en backup
-    localStorage.setItem('products_data', JSON.stringify(productsData));
-}
-
-// Remplacez saveProduct() — envoie le fichier au serveur
-async function saveProduct() {
-    const name = document.getElementById('f-name').value.trim();
-    const desc = document.getElementById('f-desc').value.trim();
-    const details = document.getElementById('f-details').value.trim();
-    const rating = document.getElementById('f-rating').value;
-    const type = document.getElementById('f-type').value;
-    const mediaUrl = document.getElementById('f-media-url').value.trim();
-    const fileInput = document.getElementById('f-file-input'); // input type=file
-    const catBtn = document.querySelector('.admin-select-btn[data-cat].active');
-    const targetCat = catBtn ? catBtn.dataset.cat : adminCurrentCat;
-    const editIdx = document.getElementById('edit-idx').value;
-    const editCat = document.getElementById('edit-cat-origin').value;
-
-    if (!name) { adminShowToast('⚠️ Entrez un nom !'); return; }
-    if (!desc) { adminShowToast('⚠️ Entrez une description !'); return; }
-
-    const formData = new FormData();
-    formData.append('name', name);
-    formData.append('description', desc);
-    formData.append('details', details);
-    formData.append('rating', rating);
-    formData.append('type', type);
-    formData.append('category', targetCat);
-    formData.append('mediaUrl', mediaUrl);
-    formData.append('editIdx', editIdx);
-    formData.append('editCat', editCat);
-
-    if (fileInput?.files[0]) {
-        formData.append('file', fileInput.files[0]);
-    }
-
     try {
-        adminShowToast('⏳ Sauvegarde...');
-        const res = await fetch('/api/products', { method: 'POST', body: formData });
-        const data = await res.json();
-        if (data.success) {
-            await loadProductsFromStorage();
-            adminCurrentCat = targetCat;
-            adminRenderProducts();
-            adminRefreshStats();
-            updateCategoryCounts();
-            closeProductForm();
-            adminShowToast('✅ Produit sauvegardé !');
-        }
+        await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productsData)
+        });
     } catch(e) {
-        adminShowToast('❌ Erreur sauvegarde !');
+        console.log('Erreur save:', e);
     }
 }
 
@@ -111,7 +67,7 @@ function initDefaultProducts() {
             { name:"🍫DRYSIFT🍫 • SOUR DIESEL ⛽", description:"Sour Diesel terps diesel", type:"video", media:"videos/stup13.mp4", thumbnail:"videos/stup13.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT SOUR DIESEL 🔥\n\nQUANTITÉS DISPO : 10G⛽25G⛽50G⛽100G⛽200G⛽500G⛽1K⛽+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🍫DRYSIFT🍫 • LEMON HAZE 🍋", description:"Lemon Haze citronné", type:"video", media:"videos/stup14.mp4", thumbnail:"videos/stup14.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT LEMON HAZE 🔥\n\nQUANTITÉS DISPO : 10G🍋25G🍋50G🍋100G🍋200G🍋500G🍋1K🍋+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🍫DRYSIFT🍫 • AMNESIA 🧠", description:"Amnesia classique puissant", type:"video", media:"videos/stup15.mp4", thumbnail:"videos/stup15.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT AMNESIA 🔥\n\nQUANTITÉS DISPO : 10G🧠25G🧠50G🧠100G🧠200G🧠500G🧠1K🧠+PV\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🟣 F.F WHOLE PLANT ROEMER FARMS 🟣", description:"PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019", type:"video", media:"videos/stup16.mp4", thumbnail:"videos/stup16.mp4", rating:"⭐⭐⭐⭐⭐", details:"🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 🟣\n\n✅ VARIÉTÉS ✅\n• PURPLE MOLT'S 🧬\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🟣 F.F WHOLE PLANT ROEMER FARMS 🟣", description:"PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019", type:"video", media:"videos/stup16.mp4", thumbnail:"videos/stup16.mp4", rating:"⭐⭐⭐⭐⭐", details:"🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 🟣\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🇺🇸 CALI BAG'S DOJA 🇺🇸", description:"DAWG BREATH X COFFIN CANDY 🍭", type:"video", media:"videos/stup17.mp4", thumbnail:"videos/stup17.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI BAG'S DOJA 🇺🇸\n\nDISPO PAR : 1Bag(3.5g)🛍️2Bag's🛍️5Bag's🛍️10Bag's🛍️25Bag's🛍️+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"WATERMELON SKITTLEZ 🍉🍦", type:"video", media:"videos/stup18.mp4", thumbnail:"videos/stup18.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
             { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"GAS FACE ⛽️", type:"video", media:"videos/stup19.mp4", thumbnail:"videos/stup19.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
@@ -128,7 +84,6 @@ function initDefaultProducts() {
             { name:"🌀 SHISHA HOOKAH 22K ✨", description:"🔥 Shisha Hookah 22K - Saveur riche, tirage fluide 💨✨", type:"image", media:"images/puff4.jpg", thumbnail:"images/puff4.jpg", rating:"⭐⭐⭐⭐⭐", details:"🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨\n\n⭕️PRIX EN PV⭕️" }
         ]
     };
-    // Sauvegarder les défauts sur le serveur
     saveProducts();
 }
 
@@ -523,12 +478,11 @@ function editProduct(cat, idx) {
     document.getElementById('product-form-modal').style.display = 'block';
 }
 
-// Remplacez deleteProduct()
 function deleteProduct(cat, idx) {
     tg.showConfirm('🗑️ Supprimer ce produit ?', async (ok) => {
         if (ok) {
-            await fetch(`/api/products/${cat}/${idx}`, { method: 'DELETE' });
-            await loadProductsFromStorage();
+            productsData[cat].splice(idx, 1);
+            await saveProducts();
             adminRenderProducts();
             adminRefreshStats();
             updateCategoryCounts();
@@ -590,7 +544,7 @@ function handleFileUpload(input) {
     reader.readAsDataURL(file);
 }
 
-function saveProduct() {
+async function saveProduct() {
     const name = document.getElementById('f-name').value.trim();
     const desc = document.getElementById('f-desc').value.trim();
     const details = document.getElementById('f-details').value.trim();
@@ -601,15 +555,14 @@ function saveProduct() {
     const media = mediaData || mediaUrl;
     const catBtn = document.querySelector('.admin-select-btn[data-cat].active');
     const targetCat = catBtn ? catBtn.dataset.cat : adminCurrentCat;
+    const editIdx = document.getElementById('edit-idx').value;
+    const editCat = document.getElementById('edit-cat-origin').value;
 
     if (!name) { adminShowToast('⚠️ Entrez un nom !'); return; }
     if (!desc) { adminShowToast('⚠️ Entrez une description !'); return; }
     if (!media) { adminShowToast('⚠️ Ajoutez une photo/vidéo !'); return; }
 
     const product = { name, description: desc, details, rating, type, media, thumbnail: media };
-
-    const editIdx = document.getElementById('edit-idx').value;
-    const editCat = document.getElementById('edit-cat-origin').value;
 
     if (editIdx !== '') {
         if (editCat !== targetCat) {
@@ -618,14 +571,14 @@ function saveProduct() {
         } else {
             productsData[editCat][parseInt(editIdx)] = product;
         }
-        adminShowToast('✅ Produit modifié !');
     } else {
         if (!productsData[targetCat]) productsData[targetCat] = [];
         productsData[targetCat].push(product);
-        adminShowToast('✅ Produit ajouté !');
     }
 
-    saveProducts();
+    adminShowToast('⏳ Sauvegarde...');
+    await saveProducts();
+
     adminCurrentCat = targetCat;
     document.querySelectorAll('.admin-tab').forEach(t => {
         t.classList.toggle('active', t.textContent.toLowerCase().includes(targetCat));
@@ -634,6 +587,7 @@ function saveProduct() {
     adminRefreshStats();
     updateCategoryCounts();
     closeProductForm();
+    adminShowToast('✅ Produit sauvegardé !');
 }
 
 function adminShowToast(msg) {
