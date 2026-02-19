@@ -1,15 +1,11 @@
 {
   "name": "le-professeur-5962",
   "version": "1.0.0",
-  "description": "Mini App Telegram - Le Professeur 59-62",
-  "main": "index.html",
+  "main": "server.js",
   "scripts": {
-    "start": "npx http-server -p $PORT -c-1"
+    "start": "node server.js"
   },
-  "keywords": ["telegram", "miniapp"],
-  "author": "Le Professeur",
-  "license": "MIT",
   "dependencies": {
-    "http-server": "^14.1.1"
+    "express": "^4.18.2"
   }
 }

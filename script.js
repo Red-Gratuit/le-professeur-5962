@@ -21,16 +21,47 @@ let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 let adminCurrentCat = 'stup';
 let productsData = { stup: [], tabac: [], puff: [] };
 
-// ============ CHARGEMENT PRODUITS ============
-function loadProductsFromStorage() {
-    const saved = localStorage.getItem('products_data');
-    if (saved) {
-        try { productsData = JSON.parse(saved); }
-        catch(e) { initDefaultProducts(); }
-    } else {
-        initDefaultProducts();
+// ============ CHARGEMENT PRODUITS (SERVEUR) ============
+async function loadProductsFromStorage() {
+    try {
+        const response = await fetch('/api/products');
+        if (response.ok) {
+            const data = await response.json();
+            if (data && (data.stup || data.tabac || data.puff)) {
+                productsData = data;
+            } else {
+                initDefaultProducts();
+            }
+        } else {
+            initDefaultProducts();
+        }
+    } catch(e) {
+        console.log('Erreur chargement serveur, fallback localStorage');
+        const saved = localStorage.getItem('products_data');
+        if (saved) {
+            try { productsData = JSON.parse(saved); }
+            catch(e2) { initDefaultProducts(); }
+        } else {
+            initDefaultProducts();
+        }
     }
     updateCategoryCounts();
+}
+
+// ============ SAUVEGARDE PRODUITS (SERVEUR) ============
+async function saveProducts() {
+    try {
+        await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productsData)
+        });
+        // Backup localStorage aussi
+        localStorage.setItem('products_data', JSON.stringify(productsData));
+    } catch(e) {
+        console.log('Erreur sauvegarde serveur, fallback localStorage');
+        localStorage.setItem('products_data', JSON.stringify(productsData));
+    }
 }
 
 function initDefaultProducts() {
@@ -51,12 +82,12 @@ function initDefaultProducts() {
             { name:"🍫DRYSIFT🍫 • SOUR DIESEL ⛽", description:"Sour Diesel terps diesel", type:"video", media:"videos/stup13.mp4", thumbnail:"videos/stup13.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT SOUR DIESEL 🔥\n\nQUANTITÉS DISPO : 10G⛽25G⛽50G⛽100G⛽200G⛽500G⛽1K⛽+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🍫DRYSIFT🍫 • LEMON HAZE 🍋", description:"Lemon Haze citronné", type:"video", media:"videos/stup14.mp4", thumbnail:"videos/stup14.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT LEMON HAZE 🔥\n\nQUANTITÉS DISPO : 10G🍋25G🍋50G🍋100G🍋200G🍋500G🍋1K🍋+PV\n\n⭕️PRIX EN PV⭕️" },
             { name:"🍫DRYSIFT🍫 • AMNESIA 🧠", description:"Amnesia classique puissant", type:"video", media:"videos/stup15.mp4", thumbnail:"videos/stup15.mp4", rating:"⭐⭐⭐⭐⭐", details:"🔥DRYSIFT AMNESIA 🔥\n\nQUANTITÉS DISPO : 10G🧠25G🧠50G🧠100G🧠200G🧠500G🧠1K🧠+PV\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🟣 F.F WHOLE PLANT ROEMER FARMS 🟣", description:"PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019", type:"video", media:"videos/stup16.mp4", thumbnail:"videos/stup16.mp4", rating:"⭐⭐⭐⭐⭐", details:"🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 🟣\n\n✅ VARIÉTÉS ✅\n• PURPLE MOLT'S 🧬\n\n🧬 Fresh Frozen à haute teneur en THC et pureté légendaire 🧬\n\nROEMER FARMS : Famille de cannaculteur reconnu depuis 2019 🌾\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🇺🇸 CALI BAG'S DOJA 🇺🇸", description:"DAWG BREATH X COFFIN CANDY 🍭", type:"video", media:"videos/stup17.mp4", thumbnail:"videos/stup17.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI BAG'S DOJA 🇺🇸\n\n✅ VARIÉTÉS ✅\n• DAWG BREATH X COFFIN CANDY 🍭\n\n🔥 DOJA - Cali fruitée/sucrée et choquante du 12/10 🔥\n\nDISPO PAR : 1Bag(3.5g)🛍️2Bag's🛍️5Bag's🛍️10Bag's🛍️25Bag's🛍️+PV\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"WATERMELON SKITTLEZ 🍉🍦", type:"video", media:"videos/stup18.mp4", thumbnail:"videos/stup18.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• WATERMELON SKITTLEZ 🍉🍦\n\n🔥 Mélange de bonbon et notes boisées, régal pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"GAS FACE ⛽️", type:"video", media:"videos/stup19.mp4", thumbnail:"videos/stup19.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GAS FACE ⛽️\n\n🔥 Cali unique et spectaculaire, mélange de bonbon et notes boisées 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🇺🇸 HASH EXTRACT FULL MELT 🇺🇸", description:"BLUEBERRY 🫐", type:"video", media:"videos/stup20.mp4", thumbnail:"videos/stup20.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 HASH EXTRACT FULL MELT 🇺🇸\n\n✅ VARIÉTÉS ✅\n• BLUEBERRY 🫐\n\n🔥 Hash qui fond complètement - meilleur grade 5-6 étoiles 🔥\n‼️ Fort goût de myrtille, défonce choquante ‼️\n\nDISPO PAR : 1G🫐3G🫐5G🫐10G🫐25G🫐50G🫐100G🫐300G🫐500G🫐1K🫐\n\n⭕️PRIX EN PV⭕️" },
-            { name:"🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸", description:"GUAVA 🥭", type:"video", media:"videos/stup21.mp4", thumbnail:"videos/stup21.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GUAVA 🥭\n\n🔥 La Moonrock de la farm EAGLES BEAN'S a fait des ravages 🔥\nLes revendeurs venez PV 😉\n\nDISPO PAR : 1G🌒2G🌒5G🌒10G🌒25G🌒50G🌒100G🌒200G🌒500G🌒1K🌒\n\n⭕️PRIX EN PV⭕️" }
+            { name:"🟣 F.F WHOLE PLANT ROEMER FARMS 🟣", description:"PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019", type:"video", media:"videos/stup16.mp4", thumbnail:"videos/stup16.mp4", rating:"⭐⭐⭐⭐⭐", details:"🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 🟣\n\n✅ VARIÉTÉS ✅\n• PURPLE MOLT'S 🧬\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🇺🇸 CALI BAG'S DOJA 🇺🇸", description:"DAWG BREATH X COFFIN CANDY 🍭", type:"video", media:"videos/stup17.mp4", thumbnail:"videos/stup17.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI BAG'S DOJA 🇺🇸\n\nDISPO PAR : 1Bag(3.5g)🛍️2Bag's🛍️5Bag's🛍️10Bag's🛍️25Bag's🛍️+PV\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"WATERMELON SKITTLEZ 🍉🍦", type:"video", media:"videos/stup18.mp4", thumbnail:"videos/stup18.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸", description:"GAS FACE ⛽️", type:"video", media:"videos/stup19.mp4", thumbnail:"videos/stup19.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K+\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🇺🇸 HASH EXTRACT FULL MELT 🇺🇸", description:"BLUEBERRY 🫐", type:"video", media:"videos/stup20.mp4", thumbnail:"videos/stup20.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 HASH EXTRACT FULL MELT 🇺🇸\n\nDISPO PAR : 1G🫐3G🫐5G🫐10G🫐25G🫐50G🫐100G🫐300G🫐500G🫐1K🫐\n\n⭕️PRIX EN PV⭕️" },
+            { name:"🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸", description:"GUAVA 🥭", type:"video", media:"videos/stup21.mp4", thumbnail:"videos/stup21.mp4", rating:"⭐⭐⭐⭐⭐", details:"🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸\n\nDISPO PAR : 1G🌒2G🌒5G🌒10G🌒25G🌒50G🌒100G🌒200G🌒500G🌒1K🌒\n\n⭕️PRIX EN PV⭕️" }
         ],
         tabac: [
             { name:"🚬 PACK CIGARETTES PREMIUM", description:"Sélection complète qualité", type:"video", media:"videos/tabac1.mp4", thumbnail:"videos/tabac1.mp4", rating:"⭐⭐⭐⭐", details:"Pack complet de cigarettes premium.\n\nMarques : Marlboro, Camel, Lucky Strike, Winston, Chesterfield\n\n⭕️PRIX EN PV⭕️" }
@@ -68,17 +99,14 @@ function initDefaultProducts() {
             { name:"🌀 SHISHA HOOKAH 22K ✨", description:"🔥 Shisha Hookah 22K - Saveur riche, tirage fluide 💨✨", type:"image", media:"images/puff4.jpg", thumbnail:"images/puff4.jpg", rating:"⭐⭐⭐⭐⭐", details:"🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨\n\n⭕️PRIX EN PV⭕️" }
         ]
     };
-    localStorage.setItem('products_data', JSON.stringify(productsData));
+    // Sauvegarder les défauts sur le serveur
+    saveProducts();
 }
 
 function updateCategoryCounts() {
     document.getElementById('count-stup').textContent = productsData.stup?.length || 0;
     document.getElementById('count-tabac').textContent = productsData.tabac?.length || 0;
     document.getElementById('count-puff').textContent = productsData.puff?.length || 0;
-}
-
-function saveProducts() {
-    localStorage.setItem('products_data', JSON.stringify(productsData));
 }
 
 // ============ LOADING SCREEN ============
@@ -345,7 +373,7 @@ function closeAdmin() {
 
 function checkAdminPassword() {
     const pwd = document.getElementById('admin-pwd-input').value;
-    const PASS = 'prof5962'; // ← CHANGEZ CE MOT DE PASSE !
+    const PASS = 'prof5962';
 
     if (pwd === PASS) {
         document.getElementById('admin-login-screen').style.display = 'none';
