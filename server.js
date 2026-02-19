@@ -11,12 +11,10 @@ app.get('/api/products', async (req, res) => {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
             headers: { 'X-Master-Key': JSONBIN_KEY }
         });
-        const data = await r.json();
-        if (data.record) {
-            res.json(data.record);
-        } else {
-            res.json({ stup: [], tabac: [], puff: [] });
-        }
+        const text = await r.text();
+        console.log('GET JSONBin raw:', text.substring(0, 300));
+        const data = JSON.parse(text);
+        res.json(data.record || { stup: [], tabac: [], puff: [] });
     } catch(e) {
         console.log('ERREUR GET:', e.message);
         res.json({ stup: [], tabac: [], puff: [] });
@@ -25,6 +23,7 @@ app.get('/api/products', async (req, res) => {
 
 app.post('/api/products', async (req, res) => {
     try {
+        console.log('POST reçu, stup count:', req.body?.stup?.length);
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
             method: 'PUT',
             headers: {
@@ -33,7 +32,8 @@ app.post('/api/products', async (req, res) => {
             },
             body: JSON.stringify(req.body)
         });
-        const data = await r.json();
+        const text = await r.text();
+        console.log('PUT JSONBin raw:', text.substring(0, 300));
         res.json({ success: true });
     } catch(e) {
         console.log('ERREUR POST:', e.message);
