@@ -515,8 +515,16 @@ async function handleFileUpload(input) {
     const file = input.files[0];
     if (!file) return;
     const statusEl = document.getElementById('upload-status');
+
+    // ✅ Détection large — tout ce qui n'est pas image = vidéo
     const isImage = file.type.startsWith('image/');
-    const isVideo = file.type.startsWith('video/');
+    const isVideo = file.type.startsWith('video/') || 
+                    file.name.match(/\.(mov|mp4|avi|mkv|hevc|3gp|wmv|flv|webm|m4v)$/i);
+
+    if (!isImage && !isVideo) {
+        statusEl.textContent = '❌ Format non supporté !';
+        return;
+    }
 
     document.querySelectorAll('.admin-select-btn[data-type]').forEach(b => {
         b.classList.toggle('active', (isImage && b.dataset.type==='image') || (isVideo && b.dataset.type==='video'));
@@ -528,7 +536,7 @@ async function handleFileUpload(input) {
         return;
     }
 
-    statusEl.textContent = '⏳ Chargement...';
+    statusEl.textContent = `⏳ Chargement ${isVideo ? 'vidéo' : 'image'}...`;
 
     const reader = new FileReader();
     reader.onload = async (e) => {
@@ -636,3 +644,4 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.setHeaderColor('#0a0a0f');
     tg.setBackgroundColor('#0a0a0f');
 });
+
