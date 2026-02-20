@@ -22,7 +22,7 @@ bot.onText(/\/start/, async (msg) => {
         reply_markup: {
             inline_keyboard: [[
                 {
-                    text: '🇲🇦 MENU CaliFastDrive',
+                    text: '👨‍🏫 MENU Le Professeur',
                     web_app: { url: APP_URL }
                 }
             ]]
