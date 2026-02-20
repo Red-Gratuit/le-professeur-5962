@@ -358,7 +358,6 @@ function closeAdmin() {
 function checkAdminPassword() {
     const pwd = document.getElementById('admin-pwd-input').value;
     const PASS = 'prof5962';
-
     if (pwd === PASS) {
         document.getElementById('admin-login-screen').style.display = 'none';
         document.getElementById('admin-main-content').style.display = 'block';
@@ -402,9 +401,7 @@ function adminRenderProducts() {
 
     list.innerHTML = products.map((p, i) => {
         let thumb = '';
-        if (p.media && p.media.startsWith('data:image')) {
-            thumb = `<img src="${p.media}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">`;
-        } else if (p.type === 'image' && p.media) {
+        if (p.type === 'image' && p.media) {
             thumb = `<img src="${p.media}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onerror="this.style.opacity='0.3'">`;
         } else if (p.type === 'video' && p.media) {
             thumb = `<video src="${p.media}" muted playsinline style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></video>`;
@@ -460,7 +457,7 @@ function editProduct(cat, idx) {
     document.getElementById('f-rating').value = p.rating;
     document.getElementById('f-type').value = p.type;
     document.getElementById('f-media').value = p.media;
-    document.getElementById('f-media-url').value = p.media?.startsWith('data:') ? '' : p.media;
+    document.getElementById('f-media-url').value = p.media || '';
 
     if (p.media) {
         if (p.type === 'image') {
@@ -518,8 +515,6 @@ async function handleFileUpload(input) {
     const file = input.files[0];
     if (!file) return;
     const statusEl = document.getElementById('upload-status');
-    statusEl.textContent = '⏳ Upload en cours...';
-
     const isImage = file.type.startsWith('image/');
     const isVideo = file.type.startsWith('video/');
 
@@ -528,38 +523,49 @@ async function handleFileUpload(input) {
     });
     document.getElementById('f-type').value = isImage ? 'image' : 'video';
 
+    if (file.size > 50 * 1024 * 1024) {
+        statusEl.textContent = '❌ Fichier trop lourd ! Max 50MB';
+        return;
+    }
+
+    statusEl.textContent = '⏳ Chargement...';
+
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const base64 = e.target.result;
-        const preview = document.getElementById('upload-preview');
-
-        try {
-            const res = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ file: base64, type: isImage ? 'image' : 'video' })
-            });
-            const data = await res.json();
-
-            if (data.success && data.url) {
-                document.getElementById('f-media').value = data.url;
-                document.getElementById('f-media-url').value = data.url;
-                if (isImage) {
-                    preview.innerHTML = `<img src="${data.url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;">`;
-                    statusEl.textContent = `✅ Image uploadée !`;
-                } else {
-                    preview.innerHTML = `<video src="${data.url}" style="width:100%;max-height:160px;border-radius:8px;" controls muted></video>`;
-                    statusEl.textContent = `✅ Vidéo uploadée !`;
-                }
-            } else {
-                statusEl.textContent = '❌ Erreur upload !';
-                console.log('Upload error:', data);
-            }
-        } catch(e) {
-            statusEl.textContent = '❌ Erreur connexion !';
-        }
+        await uploadToCloudinary(e.target.result, isImage ? 'image' : 'video', statusEl);
     };
     reader.readAsDataURL(file);
+}
+
+async function uploadToCloudinary(base64, type, statusEl) {
+    try {
+        statusEl.textContent = `⏳ Upload ${type === 'video' ? 'vidéo' : 'image'} en cours...`;
+        const res = await fetch('/api/upload', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ file: base64, type })
+        });
+        const data = await res.json();
+
+        if (data.success && data.url) {
+            document.getElementById('f-media').value = data.url;
+            document.getElementById('f-media-url').value = data.url;
+            const preview = document.getElementById('upload-preview');
+            if (type === 'image') {
+                preview.innerHTML = `<img src="${data.url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;">`;
+                statusEl.textContent = '✅ Image uploadée !';
+            } else {
+                preview.innerHTML = `<video src="${data.url}" style="width:100%;max-height:160px;border-radius:8px;" controls muted></video>`;
+                statusEl.textContent = '✅ Vidéo uploadée !';
+            }
+        } else {
+            statusEl.textContent = '❌ Erreur upload !';
+            console.log('Upload error:', data);
+        }
+    } catch(e) {
+        statusEl.textContent = '❌ Erreur connexion !';
+        console.log('Upload error:', e);
+    }
 }
 
 async function saveProduct() {
@@ -580,7 +586,6 @@ async function saveProduct() {
     if (!desc) { adminShowToast('⚠️ Entrez une description !'); return; }
     if (!media) { adminShowToast('⚠️ Ajoutez une photo/vidéo !'); return; }
 
-    // Bloquer base64 — doit être uploadé via Cloudinary d'abord
     if (media.startsWith('data:')) {
         adminShowToast('⚠️ Attendez la fin de l\'upload !');
         return;
