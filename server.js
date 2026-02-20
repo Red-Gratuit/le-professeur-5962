@@ -10,6 +10,7 @@ const API_KEY = process.env.CLOUDINARY_API_KEY || '366469192989696';
 const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'L7kwi2I_w_Pv0els3LBhnS56LSk';
 const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'le-professeur';
 
+// ✅ UPLOAD vers Cloudinary
 app.post('/api/upload', async (req, res) => {
     try {
         const { file, type } = req.body;
@@ -17,10 +18,11 @@ app.post('/api/upload', async (req, res) => {
 
         const resourceType = type === 'video' ? 'video' : 'image';
 
-        // ✅ Upload non signé avec preset (marche pour images ET vidéos)
         const formData = new URLSearchParams();
         formData.append('file', file);
         formData.append('upload_preset', UPLOAD_PRESET);
+        // ✅ Nom unique sans slash
+        formData.append('public_id', `prof_${Date.now()}`);
 
         console.log(`Upload ${resourceType} vers Cloudinary...`);
 
@@ -44,6 +46,7 @@ app.post('/api/upload', async (req, res) => {
     }
 });
 
+// ✅ GET produits depuis JSONBin
 app.get('/api/products', async (req, res) => {
     try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
@@ -52,10 +55,12 @@ app.get('/api/products', async (req, res) => {
         const data = await r.json();
         res.json(data.record || { stup: [], tabac: [], puff: [] });
     } catch(e) {
+        console.log('ERREUR GET:', e.message);
         res.json({ stup: [], tabac: [], puff: [] });
     }
 });
 
+// ✅ POST produits vers JSONBin
 app.post('/api/products', async (req, res) => {
     try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
@@ -68,10 +73,10 @@ app.post('/api/products', async (req, res) => {
         });
         res.json({ success: true });
     } catch(e) {
+        console.log('ERREUR POST:', e.message);
         res.status(500).json({ error: e.message });
     }
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server on port ${PORT}`));
-
