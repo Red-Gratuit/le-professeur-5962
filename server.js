@@ -1,40 +1,38 @@
 const express = require('express');
 const app = express();
-app.use(express.json({ limit: '50mb' }));
+app.use(express.json({ limit: '100mb' }));
 app.use(express.static('.'));
 
 const JSONBIN_ID = process.env.JSONBIN_ID || '6997693b43b1c97be98c5829';
 const JSONBIN_KEY = process.env.JSONBIN_KEY || '$2a$10$HDh.vZjjM5lGtDsPLbcqce9WhEZ.bdlPmKbTRMpEM4tP86RS3dlLW';
-const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
-const API_KEY = process.env.CLOUDINARY_API_KEY;
-const API_SECRET = process.env.CLOUDINARY_API_SECRET;
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dbkcnqgyb';
+const API_KEY = process.env.CLOUDINARY_API_KEY || '366469192989696';
+const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'L7kwi2I_w_Pv0els3LBhnS56LSk';
+const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'le-professeur';
 
-// ✅ Upload image/vidéo vers Cloudinary
 app.post('/api/upload', async (req, res) => {
     try {
         const { file, type } = req.body;
         if (!file) return res.status(400).json({ error: 'Fichier manquant' });
 
         const resourceType = type === 'video' ? 'video' : 'image';
-        const timestamp = Math.round(Date.now() / 1000);
 
-        // Signature Cloudinary
-        const crypto = require('crypto');
-        const str = `timestamp=${timestamp}${API_SECRET}`;
-        const signature = crypto.createHash('sha1').update(str).digest('hex');
-
+        // ✅ Upload non signé avec preset (marche pour images ET vidéos)
         const formData = new URLSearchParams();
         formData.append('file', file);
-        formData.append('timestamp', timestamp);
-        formData.append('api_key', API_KEY);
-        formData.append('signature', signature);
+        formData.append('upload_preset', UPLOAD_PRESET);
 
-        const r = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`, {
-            method: 'POST',
-            body: formData
-        });
+        console.log(`Upload ${resourceType} vers Cloudinary...`);
 
-        const data = await r.json();
+        const r = await fetch(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
+            { method: 'POST', body: formData }
+        );
+
+        const text = await r.text();
+        console.log('Cloudinary:', text.substring(0, 200));
+        const data = JSON.parse(text);
+
         if (data.secure_url) {
             res.json({ success: true, url: data.secure_url });
         } else {
@@ -46,7 +44,6 @@ app.post('/api/upload', async (req, res) => {
     }
 });
 
-// ✅ GET produits depuis JSONBin
 app.get('/api/products', async (req, res) => {
     try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
@@ -59,7 +56,6 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// ✅ POST produits vers JSONBin
 app.post('/api/products', async (req, res) => {
     try {
         const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
