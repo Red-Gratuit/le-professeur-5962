@@ -1,3 +1,72 @@
+// ===== GESTION DU STOCKAGE HYBRIDE =====
+class StorageManager {
+    constructor() {
+        this.dbName = 'LeProfesseurDB';
+        this.dbVersion = 1;
+        this.db = null;
+    }
+    
+    async initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(this.dbName, this.dbVersion);
+            
+            request.onerror = () => reject(request.error);
+            request.onsuccess = () => {
+                this.db = request.result;
+                resolve(this.db);
+            };
+            
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('media')) {
+                    db.createObjectStore('media', { keyPath: 'id' });
+                }
+            };
+        });
+    }
+    
+    async saveMedia(id, dataUrl) {
+        if (!this.db) await this.initDB();
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['media'], 'readwrite');
+            const store = transaction.objectStore('media');
+            
+            const request = store.put({ id, data: dataUrl });
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async getMedia(id) {
+        if (!this.db) await this.initDB();
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['media'], 'readonly');
+            const store = transaction.objectStore('media');
+            
+            const request = store.get(id);
+            request.onsuccess = () => resolve(request.result?.data);
+            request.onerror = () => reject(request.error);
+        });
+    }
+    
+    async deleteMedia(id) {
+        if (!this.db) await this.initDB();
+        
+        return new Promise((resolve, reject) => {
+            const transaction = this.db.transaction(['media'], 'readwrite');
+            const store = transaction.objectStore('media');
+            
+            const request = store.delete(id);
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error);
+        });
+    }
+}
+
+const storageManager = new StorageManager();
+
 // Initialize Telegram Web App
 let tg = window.Telegram.WebApp;
 tg.expand();
@@ -505,7 +574,20 @@ function checkVideoExists(videoPath) {
     return hasValidExtension && isRelativePath;
 }
 
-function showProducts(category, event) {
+async function loadProductMedia(product) {
+    if (product.media && product.media.startsWith('indexeddb://')) {
+        const mediaId = product.media.replace('indexeddb://', '');
+        try {
+            return await storageManager.getMedia(mediaId);
+        } catch (error) {
+            console.error('Erreur chargement média IndexedDB:', error);
+            return null;
+        }
+    }
+    return product.media;
+}
+
+async function showProducts(category, event) {
     if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
@@ -977,7 +1059,7 @@ function handleFileUpload(input) {
     }
 }
 
-function saveProduct() {
+async function saveProduct() {
     const name = document.getElementById('f-name').value.trim();
     const desc = document.getElementById('f-desc').value.trim();
     const details = document.getElementById('f-details').value.trim();
@@ -995,48 +1077,65 @@ function saveProduct() {
         return;
     }
     
-    // Utiliser le fichier uploadé (base64) ou l'URL manuelle
-    let media = uploadedFile || mediaUrl;
-    
-    // Si c'est une URL manuelle, vérifier qu'elle est valide
-    if (!uploadedFile && mediaUrl) {
-        if (!checkVideoExists(mediaUrl) && type === 'video') {
-            adminShowToast('⚠️ Le chemin de la vidéo semble invalide');
+    try {
+        let media = mediaUrl;
+        let mediaId = null;
+        
+        // Si c'est un fichier uploadé (base64), le sauvegarder dans IndexedDB
+        if (uploadedFile && uploadedFile.startsWith('data:')) {
+            mediaId = `${category}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            await storageManager.saveMedia(mediaId, uploadedFile);
+            media = `indexeddb://${mediaId}`; // Référence speciale
+        }
+        
+        const product = {
+            name,
+            description: desc,
+            details,
+            rating,
+            type,
+            media,
+            thumbnail: media,
+            mediaId, // Pour savoir où récupérer le fichier
+            uploadedFile: !!uploadedFile
+        };
+        
+        if (editIdx !== '' && editCatOrigin !== '') {
+            // Mode édition - supprimer l'ancien média si nécessaire
+            const oldProduct = productsData[editCatOrigin][parseInt(editIdx)];
+            if (oldProduct?.mediaId) {
+                await storageManager.deleteMedia(oldProduct.mediaId);
+            }
+            productsData[editCatOrigin][parseInt(editIdx)] = product;
+            adminShowToast('✅ Produit modifié avec succès');
+        } else {
+            // Mode ajout
+            productsData[category].push(product);
+            adminShowToast('✅ Produit ajouté avec succès');
+        }
+        
+        // Sauvegarder seulement les métadonnées dans localStorage
+        localStorage.setItem('products_data', JSON.stringify(productsData));
+        
+        // Fermer le formulaire
+        closeProductForm();
+        
+        // Recharger la liste
+        adminLoadProducts();
+        updateCategoryCounts();
+        
+        if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') {
+            tg.HapticFeedback.notificationOccurred('success');
+        }
+        
+    } catch (error) {
+        console.error('Erreur sauvegarde produit:', error);
+        if (error.name === 'QuotaExceededError') {
+            adminShowToast('❌ Espace de stockage insuffisant. Essayez avec des fichiers plus petits.');
+        } else {
+            adminShowToast('❌ Erreur lors de la sauvegarde');
         }
     }
-    
-    const product = {
-        name,
-        description: desc,
-        details,
-        rating,
-        type,
-        media,
-        thumbnail: media,
-        uploadedFile: uploadedFile ? true : false // Marquer si c'est un fichier uploadé
-    };
-    
-    if (editIdx !== '' && editCatOrigin !== '') {
-        // Mode édition
-        productsData[editCatOrigin][parseInt(editIdx)] = product;
-        adminShowToast('✅ Produit modifié avec succès');
-    } else {
-        // Mode ajout
-        productsData[category].push(product);
-        adminShowToast('✅ Produit ajouté avec succès');
-    }
-    
-    // Sauvegarder
-    localStorage.setItem('products_data', JSON.stringify(productsData));
-    
-    // Fermer le formulaire
-    closeProductForm();
-    
-    // Recharger la liste
-    adminLoadProducts();
-    updateCategoryCounts();
-    
-    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
