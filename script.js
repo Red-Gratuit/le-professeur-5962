@@ -364,7 +364,7 @@ function toggleMusic() {
     }
     musicPlaying = !musicPlaying;
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('light');
     }
 }
@@ -392,7 +392,7 @@ function shareApp() {
             url: window.location.href
         }).then(() => {
             showToast('✅ Merci pour le partage !');
-            if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
         }).catch(() => {});
     } else {
         tg.showPopup({
@@ -485,14 +485,14 @@ function navigateToPage(pageName, event) {
     const navBtn = document.querySelector(`.nav-btn[data-page="${pageName}"]`);
     if (navBtn) navBtn.classList.add('active');
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('light');
     }
 }
 
 // Show products
 function showProducts(category, event) {
-    if (event) {
+    if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
     }
@@ -538,7 +538,7 @@ function showProducts(category, event) {
         }, 50);
     }, 300);
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
@@ -587,7 +587,7 @@ function openProductModal(category, index) {
     modal.classList.add('show');
     
     // L'utilisateur doit cliquer sur play pour démarrer la vidéo (évite les erreurs autoplay)
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
@@ -601,7 +601,7 @@ function closeModal() {
     modal.classList.remove('show');
     currentProduct = null;
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('light');
     }
 }
@@ -625,7 +625,7 @@ function toggleFavorite() {
     
     localStorage.setItem('favorites', JSON.stringify(favorites));
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('medium');
     }
 }
@@ -655,25 +655,25 @@ function contactForProduct() {
 function openSnapchat1() {
     tg.openLink('https://www.snapchat.com/add/pfsrtr');
     showToast('📱 Ouverture de Snapchat...');
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 function openSnapchat2() {
     tg.openLink('https://www.snapchat.com/add/prfsec');
     showToast('📱 Ouverture de Snapchat...');
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 function openSignal() {
     tg.openLink('https://signal.me/#eu/vGD3tpB0PRBb-dZdLmbDCVQi9Jm2a2UKSUnyGR5ZW2wyP-e3UUpNbJwTMkwi1nzX');
     showToast('📱 Ouverture de Signal...');
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 function openPotato() {
     tg.openLink('https://dympt.org/Leprofesseur5962');
     showToast('🥔 Ouverture du Canal Potato...');
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 // Order now
@@ -694,7 +694,7 @@ function orderNow() {
         if (buttonId === 'potato') openPotato();
     });
     
-    if (tg.HapticFeedback) {
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') {
         tg.HapticFeedback.impactOccurred('heavy');
     }
 }
@@ -750,11 +750,11 @@ function checkAdminPassword() {
         document.getElementById('admin-main-content').style.display = 'block';
         adminLoadProducts();
         adminShowToast('🔓 Accès autorisé au panel admin');
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
     } else {
         adminShowToast('❌ Mot de passe incorrect');
         document.getElementById('admin-pwd-input').value = '';
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+        if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('error');
     }
 }
 
@@ -886,7 +886,7 @@ function adminDeleteProduct(index) {
         adminLoadProducts();
         updateCategoryCounts();
         adminShowToast('🗑️ Produit supprimé');
-        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
     }
 }
 
@@ -894,7 +894,7 @@ function adminDeleteProduct(index) {
 function closeProductForm() {
     document.getElementById('product-form-modal').style.display = 'none';
     adminResetForm();
-    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.impactOccurred === 'function') tg.HapticFeedback.impactOccurred('light');
 }
 
 function selectType(button) {
@@ -977,7 +977,7 @@ function saveProduct() {
     adminLoadProducts();
     updateCategoryCounts();
     
-    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
 }
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
