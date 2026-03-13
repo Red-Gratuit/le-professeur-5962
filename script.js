@@ -491,6 +491,20 @@ function navigateToPage(pageName, event) {
 }
 
 // Show products
+function checkVideoExists(videoPath) {
+    // Vérifie si le chemin de la vidéo semble valide
+    if (!videoPath) return false;
+    
+    // Liste des extensions vidéo valides
+    const validExtensions = ['.mp4', '.webm', '.ogg', '.mov'];
+    const hasValidExtension = validExtensions.some(ext => videoPath.toLowerCase().endsWith(ext));
+    
+    // Vérifie si c'est un chemin relatif valide
+    const isRelativePath = videoPath.startsWith('videos/') || videoPath.startsWith('images/') || videoPath.startsWith('./');
+    
+    return hasValidExtension && isRelativePath;
+}
+
 function showProducts(category, event) {
     if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
@@ -516,10 +530,21 @@ function showProducts(category, event) {
                 <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            <video muted loop playsinline onclick="event.stopPropagation(); this.paused ? this.play() : this.pause();">
-                                <source src="${product.thumbnail}" type="video/mp4">
+                            ${checkVideoExists(product.thumbnail) ? `
+                            <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
+                                <source src="${product.thumbnail}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
                             </video>
-                            <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video.paused) video.play(); else video.pause();">▶</div>
+                            <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
+                            ` : `
+                            <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
+                                <div style="text-align:center; color:white;">
+                                    <div style="font-size:48px; margin-bottom:10px;">📹</div>
+                                    <div style="font-size:14px; opacity:0.8;">Vidéo non disponible</div>
+                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.thumbnail}</div>
+                                </div>
+                                <span class="stock-badge">VIDÉO</span>
+                            </div>
+                            `}
                         ` : `<img src="${product.media}" alt="${product.name}">`}
                         <span class="stock-badge">EN STOCK</span>
                     </div>
@@ -562,10 +587,14 @@ function openProductModal(category, index) {
     if (product.type === 'video') {
         mediaHTML = `
             <div class="modal-product-media">
-                <video controls loop muted playsinline>
+                <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
                     <source src="${product.media}" type="video/mp4">
                     Votre navigateur ne supporte pas la vidéo.
                 </video>
+                <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
+                    📹 Vidéo: ${product.media}<br>
+                    <small>Si la vidéo ne charge pas, vérifiez que le fichier existe.</small>
+                </div>
             </div>
         `;
     } else if (product.type === 'image') {
