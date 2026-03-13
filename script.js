@@ -604,17 +604,23 @@ async function showProducts(category, event) {
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
     
-    setTimeout(() => {
+    setTimeout(async () => {
         if (products.length === 0) {
             container.innerHTML = '<p style="text-align:center; padding:60px 20px; color: rgba(255,255,255,0.5); font-size:16px;">Aucun produit disponible</p>';
         } else {
-            container.innerHTML = products.map((product, index) => `
-                <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
+            // Charger tous les médias depuis IndexedDB si nécessaire
+            const productsWithMedia = await Promise.all(products.map(async (product, index) => {
+                const mediaSrc = await loadProductMedia(product);
+                return { ...product, mediaSrc, index };
+            }));
+            
+            container.innerHTML = productsWithMedia.map((product) => `
+                <div class="product-card" onclick="openProductModal('${category}', ${product.index})" style="animation-delay: ${product.index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            ${product.uploadedFile || product.media.startsWith('data:') ? `
+                            ${product.uploadedFile || product.media.startsWith('data:') || product.media.startsWith('indexeddb://') ? `
                             <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
-                                <source src="${product.media}" type="video/mp4">
+                                <source src="${product.mediaSrc || 'data:video/mp4;base64,'}" type="video/mp4">
                             </video>
                             <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
                             ` : checkVideoExists(product.thumbnail) ? `
@@ -626,13 +632,13 @@ async function showProducts(category, event) {
                             <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
                                 <div style="text-align:center; color:white;">
                                     <div style="font-size:48px; margin-bottom:10px;">📹</div>
-                                    <div style="font-size:14px; opacity:0.8;">Vidéo non disponible</div>
-                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.thumbnail}</div>
+                                    <div style="font-size:14px; opacity:0.8;">Vidéo uploadée</div>
+                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.mediaId ? 'ID: ' + product.mediaId.substring(0, 8) + '...' : ''}</div>
                                 </div>
                                 <span class="stock-badge">VIDÉO</span>
                             </div>
                             `}
-                        ` : `<img src="${product.media}" alt="${product.name}">`}
+                        ` : `<img src="${product.mediaSrc || product.media}" alt="${product.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMGEwZTI3Ii8+CjxwYXRoIGQ9Ik0xMDAgNjBIMTIwVjE0MEgxMDBWNjBaIiBmaWxsPSIjOGEyYmUyIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMDBWMTQwSDgwVjYwWiIgZmlsbD0iIzhhMmJlMiIvPgo8cGF0aCBkPSJNNjAgNjBIODBWMTQwSDYwVjYwWiIgZmlsbD0iIzhhMmJlMiIvPgo8L3N2Zz4K';">`}
                         <span class="stock-badge">EN STOCK</span>
                     </div>
                     <div class="product-info">
@@ -656,7 +662,7 @@ async function showProducts(category, event) {
 }
 
 // Open product modal
-function openProductModal(category, index) {
+async function openProductModal(category, index) {
     const product = productsData[category][index];
     if (!product) return;
     
@@ -672,22 +678,28 @@ function openProductModal(category, index) {
     
     let mediaHTML = '';
     if (product.type === 'video') {
+        // Charger le média depuis IndexedDB si nécessaire
+        const mediaSrc = await loadProductMedia(product);
+        
         mediaHTML = `
             <div class="modal-product-media">
                 <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
-                    <source src="${product.media}" type="video/mp4">
+                    <source src="${mediaSrc || product.media}" type="video/mp4">
                     Votre navigateur ne supporte pas la vidéo.
                 </video>
                 <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
-                    📹 Vidéo: ${product.media}<br>
-                    <small>Si la vidéo ne charge pas, vérifiez que le fichier existe.</small>
+                    📹 Vidéo chargée depuis IndexedDB<br>
+                    <small>ID: ${product.mediaId || 'N/A'}</small>
                 </div>
             </div>
         `;
     } else if (product.type === 'image') {
+        // Charger l'image depuis IndexedDB si nécessaire
+        const mediaSrc = await loadProductMedia(product);
+        
         mediaHTML = `
             <div class="modal-product-media">
-                <img src="${product.media}" alt="${product.name}">
+                <img src="${mediaSrc || product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src);">
             </div>
         `;
     }
