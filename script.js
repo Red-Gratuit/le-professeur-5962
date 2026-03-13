@@ -809,16 +809,31 @@ function adminAddProduct() {
 }
 
 function adminResetForm() {
-    document.getElementById('product-name-input').value = '';
-    document.getElementById('product-description-input').value = '';
-    document.getElementById('product-media-input').value = '';
-    document.getElementById('product-details-input').value = '';
-    document.querySelectorAll('.admin-select-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-desc').value = '';
+    document.getElementById('f-media').value = '';
+    document.getElementById('f-media-url').value = '';
+    document.getElementById('f-details').value = '';
+    document.querySelectorAll('.admin-select-btn[data-cat]').forEach(btn => btn.classList.remove('active'));
     document.querySelector('.admin-select-btn[data-cat="stup"]').classList.add('active');
+    document.querySelectorAll('.admin-select-btn[data-type]').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.admin-select-btn[data-type="video"]').classList.add('active');
+    document.getElementById('f-type').value = 'video';
+    document.getElementById('f-rating').value = '⭐⭐⭐⭐⭐';
     document.querySelectorAll('.admin-rating-btn').forEach(btn => btn.classList.remove('active'));
     document.querySelectorAll('.admin-rating-btn').forEach(btn => {
-        if (btn.textContent.includes('⭐')) btn.classList.add('active');
+        if (btn.textContent.includes('⭐⭐⭐⭐⭐')) btn.classList.add('active');
     });
+    document.getElementById('edit-idx').value = '';
+    document.getElementById('edit-cat-origin').value = '';
+    document.getElementById('form-title').textContent = '➕ Nouveau produit';
+    
+    // Reset upload preview
+    document.getElementById('upload-preview').innerHTML = `
+        <div style="font-size:32px; margin-bottom:8px;">📁</div>
+        <div style="font-size:13px; color:rgba(255,255,255,0.5); line-height:1.5;">Appuyez pour choisir<br>une photo ou vidéo</div>
+    `;
+    document.getElementById('upload-status').textContent = '';
 }
 
 function selectCat(button) {
@@ -831,14 +846,31 @@ function adminEditProduct(index) {
     if (!product) return;
     
     // Remplir le formulaire avec les données du produit
-    document.getElementById('product-name-input').value = product.name;
-    document.getElementById('product-description-input').value = product.description;
-    document.getElementById('product-media-input').value = product.media;
-    document.getElementById('product-details-input').value = product.details;
+    document.getElementById('f-name').value = product.name;
+    document.getElementById('f-desc').value = product.description;
+    document.getElementById('f-media-url').value = product.media;
+    document.getElementById('f-details').value = product.details;
+    document.getElementById('f-rating').value = product.rating;
+    document.getElementById('f-type').value = product.type;
     
     // Sélectionner la catégorie
-    document.querySelectorAll('.admin-select-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-select-btn[data-cat]').forEach(btn => btn.classList.remove('active'));
     document.querySelector(`.admin-select-btn[data-cat="${adminCurrentCat}"]`).classList.add('active');
+    
+    // Sélectionner le type
+    document.querySelectorAll('.admin-select-btn[data-type]').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.admin-select-btn[data-type="${product.type}"]`).classList.add('active');
+    
+    // Sélectionner la note
+    document.querySelectorAll('.admin-rating-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-rating-btn').forEach(btn => {
+        if (btn.textContent === product.rating) btn.classList.add('active');
+    });
+    
+    // Mode édition
+    document.getElementById('edit-idx').value = index;
+    document.getElementById('edit-cat-origin').value = adminCurrentCat;
+    document.getElementById('form-title').textContent = '✏️ Modifier produit';
     
     // Ouvrir le modal
     document.getElementById('product-form-modal').style.display = 'block';
@@ -855,6 +887,96 @@ function adminDeleteProduct(index) {
         adminShowToast('🗑️ Produit supprimé');
         if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
     }
+}
+
+// Fonctions supplémentaires pour le formulaire
+function closeProductForm() {
+    document.getElementById('product-form-modal').style.display = 'none';
+    adminResetForm();
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+
+function selectType(button) {
+    document.querySelectorAll('.admin-select-btn[data-type]').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+    document.getElementById('f-type').value = button.dataset.type;
+}
+
+function setRating(rating) {
+    document.querySelectorAll('.admin-rating-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    let stars = '';
+    for (let i = 0; i < rating; i++) {
+        stars += '⭐';
+    }
+    document.getElementById('f-rating').value = stars;
+}
+
+function handleFileUpload(input) {
+    const file = input.files[0];
+    if (file) {
+        // Pour l'instant, on simule l'upload
+        document.getElementById('upload-status').textContent = `Fichier sélectionné: ${file.name}`;
+        document.getElementById('upload-preview').innerHTML = `
+            <div style="font-size:32px; margin-bottom:8px;">📎</div>
+            <div style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5;">${file.name}</div>
+        `;
+        document.getElementById('f-media').value = file.name;
+    }
+}
+
+function saveProduct() {
+    const name = document.getElementById('f-name').value.trim();
+    const desc = document.getElementById('f-desc').value.trim();
+    const details = document.getElementById('f-details').value.trim();
+    const rating = document.getElementById('f-rating').value;
+    const type = document.getElementById('f-type').value;
+    const mediaUrl = document.getElementById('f-media-url').value.trim();
+    const uploadedFile = document.getElementById('f-media').value;
+    
+    const category = document.querySelector('.admin-select-btn[data-cat].active').dataset.cat;
+    const editIdx = document.getElementById('edit-idx').value;
+    const editCatOrigin = document.getElementById('edit-cat-origin').value;
+    
+    if (!name || !desc || !details) {
+        adminShowToast('❌ Veuillez remplir tous les champs obligatoires');
+        return;
+    }
+    
+    const media = uploadedFile || mediaUrl || 'videos/default.mp4';
+    
+    const product = {
+        name,
+        description: desc,
+        details,
+        rating,
+        type,
+        media,
+        thumbnail: media
+    };
+    
+    if (editIdx !== '' && editCatOrigin !== '') {
+        // Mode édition
+        productsData[editCatOrigin][parseInt(editIdx)] = product;
+        adminShowToast('✅ Produit modifié avec succès');
+    } else {
+        // Mode ajout
+        productsData[category].push(product);
+        adminShowToast('✅ Produit ajouté avec succès');
+    }
+    
+    // Sauvegarder
+    localStorage.setItem('products_data', JSON.stringify(productsData));
+    
+    // Fermer le formulaire
+    closeProductForm();
+    
+    // Recharger la liste
+    adminLoadProducts();
+    updateCategoryCounts();
+    
+    if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
 }
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
