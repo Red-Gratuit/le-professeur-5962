@@ -19,6 +19,7 @@ let firstClick = true;
 let currentProduct = null;
 let currentPage = 'menu';
 let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
+let adminCurrentCat = 'stup';
 
 // Products Data - Chargé depuis localStorage (géré par le panel admin)
 let productsData = {
@@ -722,5 +723,138 @@ document.addEventListener('DOMContentLoaded', () => {
     tg.setHeaderColor('#0a0a0f');
     tg.setBackgroundColor('#0a0a0f');
 });
+
+// ===== PANEL ADMIN FUNCTIONS =====
+function openAdmin() {
+    document.getElementById('admin-panel').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+}
+
+function closeAdmin() {
+    document.getElementById('admin-panel').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('admin-login-screen').style.display = 'flex';
+    document.getElementById('admin-main-content').style.display = 'none';
+    document.getElementById('admin-pwd-input').value = '';
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+
+function checkAdminPassword() {
+    const password = document.getElementById('admin-pwd-input').value;
+    const correctPassword = 'professeur59'; // Mot de passe par défaut
+    
+    if (password === correctPassword) {
+        document.getElementById('admin-login-screen').style.display = 'none';
+        document.getElementById('admin-main-content').style.display = 'block';
+        adminLoadProducts();
+        adminShowToast('🔓 Accès autorisé au panel admin');
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    } else {
+        adminShowToast('❌ Mot de passe incorrect');
+        document.getElementById('admin-pwd-input').value = '';
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+    }
+}
+
+function adminShowToast(message) {
+    const toast = document.getElementById('admin-toast');
+    toast.textContent = message;
+    toast.style.transform = 'translateX(-50%) translateY(0)';
+    
+    setTimeout(() => {
+        toast.style.transform = 'translateX(-50%) translateY(120px)';
+    }, 3000);
+}
+
+function adminSwitchCat(category, button) {
+    document.querySelectorAll('.admin-tab').forEach(tab => tab.classList.remove('active'));
+    button.classList.add('active');
+    adminCurrentCat = category;
+    adminLoadProducts();
+    if (tg.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+}
+
+function adminLoadProducts() {
+    const list = document.getElementById('admin-products-list');
+    const products = productsData[adminCurrentCat] || [];
+    
+    if (products.length === 0) {
+        list.innerHTML = '<div style="text-align:center; padding:40px; color:rgba(255,255,255,0.4);">Aucun produit dans cette catégorie</div>';
+    } else {
+        list.innerHTML = products.map((product, index) => `
+            <div style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:12px; padding:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:8px;">
+                    <div style="flex:1;">
+                        <div style="font-weight:bold; color:#fff; margin-bottom:4px;">${product.name}</div>
+                        <div style="font-size:12px; color:rgba(255,255,255,0.6);">${product.description}</div>
+                    </div>
+                    <div style="display:flex; gap:6px;">
+                        <button onclick="adminEditProduct(${index})" style="background:rgba(138,43,226,0.3); border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">✏️</button>
+                        <button onclick="adminDeleteProduct(${index})" style="background:rgba(220,53,69,0.3); border:none; color:#fff; padding:6px 10px; border-radius:8px; font-size:11px; cursor:pointer;">🗑️</button>
+                    </div>
+                </div>
+                <div style="font-size:11px; color:rgba(255,255,255,0.4);">
+                    Type: ${product.type} | Média: ${product.media}
+                </div>
+            </div>
+        `).join('');
+    }
+}
+
+function adminAddProduct() {
+    // Ouvre le modal pour ajouter un produit
+    document.getElementById('product-form-modal').style.display = 'block';
+    adminResetForm();
+}
+
+function adminResetForm() {
+    document.getElementById('product-name-input').value = '';
+    document.getElementById('product-description-input').value = '';
+    document.getElementById('product-media-input').value = '';
+    document.getElementById('product-details-input').value = '';
+    document.querySelectorAll('.admin-select-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector('.admin-select-btn[data-cat="stup"]').classList.add('active');
+    document.querySelectorAll('.admin-rating-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelectorAll('.admin-rating-btn').forEach(btn => {
+        if (btn.textContent.includes('⭐')) btn.classList.add('active');
+    });
+}
+
+function selectCat(button) {
+    document.querySelectorAll('.admin-select-btn').forEach(btn => btn.classList.remove('active'));
+    button.classList.add('active');
+}
+
+function adminEditProduct(index) {
+    const product = productsData[adminCurrentCat][index];
+    if (!product) return;
+    
+    // Remplir le formulaire avec les données du produit
+    document.getElementById('product-name-input').value = product.name;
+    document.getElementById('product-description-input').value = product.description;
+    document.getElementById('product-media-input').value = product.media;
+    document.getElementById('product-details-input').value = product.details;
+    
+    // Sélectionner la catégorie
+    document.querySelectorAll('.admin-select-btn').forEach(btn => btn.classList.remove('active'));
+    document.querySelector(`.admin-select-btn[data-cat="${adminCurrentCat}"]`).classList.add('active');
+    
+    // Ouvrir le modal
+    document.getElementById('product-form-modal').style.display = 'block';
+    
+    adminShowToast('✏️ Modification du produit');
+}
+
+function adminDeleteProduct(index) {
+    if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
+        productsData[adminCurrentCat].splice(index, 1);
+        localStorage.setItem('products_data', JSON.stringify(productsData));
+        adminLoadProducts();
+        updateCategoryCounts();
+        adminShowToast('🗑️ Produit supprimé');
+        if (tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+    }
+}
 
 console.log('🎓 Le Professeur 59-62 - Version Ultra Premium chargée avec succès !');
