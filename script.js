@@ -530,7 +530,12 @@ function showProducts(category, event) {
                 <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            ${checkVideoExists(product.thumbnail) ? `
+                            ${product.uploadedFile || product.media.startsWith('data:') ? `
+                            <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
+                                <source src="${product.media}" type="video/mp4">
+                            </video>
+                            <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
+                            ` : checkVideoExists(product.thumbnail) ? `
                             <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
                                 <source src="${product.thumbnail}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
                             </video>
@@ -946,13 +951,29 @@ function setRating(rating) {
 function handleFileUpload(input) {
     const file = input.files[0];
     if (file) {
-        // Pour l'instant, on simule l'upload
-        document.getElementById('upload-status').textContent = `Fichier sélectionné: ${file.name}`;
-        document.getElementById('upload-preview').innerHTML = `
-            <div style="font-size:32px; margin-bottom:8px;">📎</div>
-            <div style="font-size:13px; color:rgba(255,255,255,0.7); line-height:1.5;">${file.name}</div>
-        `;
-        document.getElementById('f-media').value = file.name;
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            // Créer un objet URL temporaire pour la prévisualisation
+            const tempUrl = e.target.result;
+            
+            document.getElementById('upload-status').textContent = `Fichier sélectionné: ${file.name}`;
+            document.getElementById('upload-preview').innerHTML = `
+                ${file.type.startsWith('video/') ? 
+                    `<video src="${tempUrl}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
+                    `<img src="${tempUrl}" style="max-width:100%; max-height:150px; border-radius:8px;">`
+                }
+                <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:8px;">${file.name}</div>
+            `;
+            
+            // Stocker le fichier en base64 pour le sauvegarder
+            document.getElementById('f-media').value = tempUrl;
+            document.getElementById('f-media-url').value = ''; // Vider l'URL manuelle
+            
+            adminShowToast('📎 Fichier uploadé avec succès');
+        };
+        
+        reader.readAsDataURL(file);
     }
 }
 
@@ -974,7 +995,15 @@ function saveProduct() {
         return;
     }
     
-    const media = uploadedFile || mediaUrl || 'videos/default.mp4';
+    // Utiliser le fichier uploadé (base64) ou l'URL manuelle
+    let media = uploadedFile || mediaUrl;
+    
+    // Si c'est une URL manuelle, vérifier qu'elle est valide
+    if (!uploadedFile && mediaUrl) {
+        if (!checkVideoExists(mediaUrl) && type === 'video') {
+            adminShowToast('⚠️ Le chemin de la vidéo semble invalide');
+        }
+    }
     
     const product = {
         name,
@@ -983,7 +1012,8 @@ function saveProduct() {
         rating,
         type,
         media,
-        thumbnail: media
+        thumbnail: media,
+        uploadedFile: uploadedFile ? true : false // Marquer si c'est un fichier uploadé
     };
     
     if (editIdx !== '' && editCatOrigin !== '') {
