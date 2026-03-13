@@ -516,10 +516,10 @@ function showProducts(category, event) {
                 <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            <video muted loop autoplay playsinline>
+                            <video muted loop autoplay playsinline controls onclick="event.stopPropagation(); this.play();">
                                 <source src="${product.thumbnail}" type="video/mp4">
                             </video>
-                            <div class="play-icon">▶</div>
+                            <div class="play-icon" onclick="event.stopPropagation(); this.parentElement.querySelector('video').play();">▶</div>
                         ` : `<img src="${product.media}" alt="${product.name}">`}
                         <span class="stock-badge">EN STOCK</span>
                     </div>
@@ -562,7 +562,7 @@ function openProductModal(category, index) {
     if (product.type === 'video') {
         mediaHTML = `
             <div class="modal-product-media">
-                <video controls autoplay loop>
+                <video controls autoplay loop muted playsinline>
                     <source src="${product.media}" type="video/mp4">
                     Votre navigateur ne supporte pas la vidéo.
                 </video>
@@ -585,6 +585,14 @@ function openProductModal(category, index) {
     `;
     
     modal.classList.add('show');
+    
+    // Forcer le démarrage de la vidéo dans le modal
+    setTimeout(() => {
+        const modalVideo = modal.querySelector('video');
+        if (modalVideo) {
+            modalVideo.play().catch(e => console.log('Autoplay modal video failed:', e));
+        }
+    }, 100);
     
     if (tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('medium');
