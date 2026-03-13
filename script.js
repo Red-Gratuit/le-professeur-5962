@@ -28,9 +28,7 @@ let productsData = {
 };
 
 function loadProductsFromStorage() {
-    // FORCER LE RESET DES PRODUITS (supprimez après le test)
-    localStorage.removeItem('products_data');
-    
+    // Charger depuis localStorage uniquement si disponible, sinon utiliser les produits par défaut
     const saved = localStorage.getItem('products_data');
     
     if (saved) {
@@ -290,8 +288,8 @@ function initDefaultProducts() {
     }
 ]
 };
-// Sauvegarder dans localStorage
-    localStorage.setItem('products_data', JSON.stringify(productsData));
+// Sauvegarder dans localStorage pour la persistance des cartes
+localStorage.setItem('products_data', JSON.stringify(productsData));
 }
 
 // Mettre à jour les compteurs de catégories
