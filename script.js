@@ -578,9 +578,16 @@ async function loadProductMedia(product) {
     if (product.media && product.media.startsWith('indexeddb://')) {
         const mediaId = product.media.replace('indexeddb://', '');
         try {
-            return await storageManager.getMedia(mediaId);
+            const mediaData = await storageManager.getMedia(mediaId);
+            if (mediaData) {
+                console.log('✅ Média trouvé dans IndexedDB:', mediaId);
+                return mediaData;
+            } else {
+                console.warn('⚠️ Média non trouvé dans IndexedDB:', mediaId);
+                return null;
+            }
         } catch (error) {
-            console.error('Erreur chargement média IndexedDB:', error);
+            console.error('❌ Erreur chargement média IndexedDB:', error);
             return null;
         }
     }
@@ -619,10 +626,21 @@ async function showProducts(category, event) {
                     <div class="product-image">
                         ${product.type === 'video' ? `
                             ${product.uploadedFile || product.media.startsWith('data:') || product.media.startsWith('indexeddb://') ? `
-                            <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
-                                <source src="${product.mediaSrc || 'data:video/mp4;base64,'}" type="video/mp4">
-                            </video>
-                            <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
+                                ${product.mediaSrc ? `
+                                <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
+                                    <source src="${product.mediaSrc}" type="video/mp4">
+                                </video>
+                                <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
+                                ` : `
+                                <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
+                                    <div style="text-align:center; color:white;">
+                                        <div style="font-size:48px; margin-bottom:10px;">⚠️</div>
+                                        <div style="font-size:14px; opacity:0.8;">Vidéo non trouvée</div>
+                                        <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.mediaId ? 'ID: ' + product.mediaId.substring(0, 8) + '...' : 'Erreur chargement'}</div>
+                                    </div>
+                                    <span class="stock-badge">VIDÉO</span>
+                                </div>
+                                `}
                             ` : checkVideoExists(product.thumbnail) ? `
                             <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
                                 <source src="${product.thumbnail}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
@@ -632,8 +650,8 @@ async function showProducts(category, event) {
                             <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
                                 <div style="text-align:center; color:white;">
                                     <div style="font-size:48px; margin-bottom:10px;">📹</div>
-                                    <div style="font-size:14px; opacity:0.8;">Vidéo uploadée</div>
-                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.mediaId ? 'ID: ' + product.mediaId.substring(0, 8) + '...' : ''}</div>
+                                    <div style="font-size:14px; opacity:0.8;">Vidéo non disponible</div>
+                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.thumbnail}</div>
                                 </div>
                                 <span class="stock-badge">VIDÉO</span>
                             </div>
@@ -681,25 +699,40 @@ async function openProductModal(category, index) {
         // Charger le média depuis IndexedDB si nécessaire
         const mediaSrc = await loadProductMedia(product);
         
-        mediaHTML = `
-            <div class="modal-product-media">
-                <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
-                    <source src="${mediaSrc || product.media}" type="video/mp4">
-                    Votre navigateur ne supporte pas la vidéo.
-                </video>
-                <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
-                    📹 Vidéo chargée depuis IndexedDB<br>
-                    <small>ID: ${product.mediaId || 'N/A'}</small>
+        if (mediaSrc) {
+            mediaHTML = `
+                <div class="modal-product-media">
+                    <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
+                        <source src="${mediaSrc}" type="video/mp4">
+                        Votre navigateur ne supporte pas la vidéo.
+                    </video>
+                    <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
+                        📹 Vidéo chargée depuis IndexedDB<br>
+                        <small>ID: ${product.mediaId || 'N/A'}</small>
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
+        } else {
+            mediaHTML = `
+                <div class="modal-product-media">
+                    <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:300px; display:flex; align-items:center; justify-content:center; border-radius:12px;">
+                        <div style="text-align:center; color:white;">
+                            <div style="font-size:64px; margin-bottom:15px;">⚠️</div>
+                            <div style="font-size:18px; opacity:0.9;">Vidéo non trouvée</div>
+                            <div style="font-size:14px; opacity:0.7; margin-top:10px;">ID: ${product.mediaId || 'N/A'}</div>
+                            <div style="font-size:12px; opacity:0.6; margin-top:5px;">Le fichier a peut-être été supprimé</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
     } else if (product.type === 'image') {
         // Charger l'image depuis IndexedDB si nécessaire
         const mediaSrc = await loadProductMedia(product);
         
         mediaHTML = `
             <div class="modal-product-media">
-                <img src="${mediaSrc || product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src);">
+                <img src="${mediaSrc || product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src); this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; color:white;\\'><div style=\\'text-align:center;\\'><div style=\\'font-size:48px; margin-bottom:10px;\\'>⚠️</div><div>Image non trouvée</div></div></div>';">
             </div>
         `;
     }
