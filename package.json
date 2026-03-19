@@ -1,11 +1,12 @@
 {
   "name": "le-professeur",
   "version": "1.0.0",
-  "description": "Le Professeur 59-62 - Mini App Server",
+  "description": "Le Professeur 59-62 - Bot Telegram & Mini App",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "bot": "node bot.js"
+    "bot": "node bot.js",
+    "all": "node server.js & node bot.js"
   },
   "dependencies": {
     "express": "^4.18.0",
