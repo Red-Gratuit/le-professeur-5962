@@ -594,7 +594,7 @@ async function loadProductMedia(product) {
     return product.media;
 }
 
-async function showProducts(category, event) {
+function showProducts(category, event) {
     if (event && typeof event.preventDefault === 'function') {
         event.preventDefault();
         event.stopPropagation();
@@ -611,52 +611,19 @@ async function showProducts(category, event) {
     container.style.opacity = '0';
     container.style.transform = 'translateY(20px)';
     
-    setTimeout(async () => {
+    setTimeout(() => {
         if (products.length === 0) {
             container.innerHTML = '<p style="text-align:center; padding:60px 20px; color: rgba(255,255,255,0.5); font-size:16px;">Aucun produit disponible</p>';
         } else {
-            // Charger tous les médias depuis IndexedDB si nécessaire
-            const productsWithMedia = await Promise.all(products.map(async (product, index) => {
-                const mediaSrc = await loadProductMedia(product);
-                return { ...product, mediaSrc, index };
-            }));
-            
-            container.innerHTML = productsWithMedia.map((product) => `
-                <div class="product-card" onclick="openProductModal('${category}', ${product.index})" style="animation-delay: ${product.index * 0.08}s">
+            container.innerHTML = products.map((product, index) => `
+                <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            ${product.uploadedFile || product.media.startsWith('data:') || product.media.startsWith('indexeddb://') ? `
-                                ${product.mediaSrc ? `
-                                <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
-                                    <source src="${product.mediaSrc}" type="video/mp4">
-                                </video>
-                                <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
-                                ` : `
-                                <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
-                                    <div style="text-align:center; color:white;">
-                                        <div style="font-size:48px; margin-bottom:10px;">⚠️</div>
-                                        <div style="font-size:14px; opacity:0.8;">Vidéo non trouvée</div>
-                                        <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.mediaId ? 'ID: ' + product.mediaId.substring(0, 8) + '...' : 'Erreur chargement'}</div>
-                                    </div>
-                                    <span class="stock-badge">VIDÉO</span>
-                                </div>
-                                `}
-                            ` : checkVideoExists(product.thumbnail) ? `
                             <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
-                                <source src="${product.thumbnail}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
+                                <source src="${product.media}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
                             </video>
                             <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
-                            ` : `
-                            <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; position:relative;">
-                                <div style="text-align:center; color:white;">
-                                    <div style="font-size:48px; margin-bottom:10px;">📹</div>
-                                    <div style="font-size:14px; opacity:0.8;">Vidéo non disponible</div>
-                                    <div style="font-size:12px; opacity:0.6; margin-top:5px;">${product.thumbnail}</div>
-                                </div>
-                                <span class="stock-badge">VIDÉO</span>
-                            </div>
-                            `}
-                        ` : `<img src="${product.mediaSrc || product.media}" alt="${product.name}" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjMGEwZTI3Ii8+CjxwYXRoIGQ9Ik0xMDAgNjBIMTIwVjE0MEgxMDBWNjBaIiBmaWxsPSIjOGEyYmUyIi8+CjxwYXRoIGQ9Ik04MCA2MEgxMDBWMTQwSDgwVjYwWiIgZmlsbD0iIzhhMmJlMiIvPgo8cGF0aCBkPSJNNjAgNjBIODBWMTQwSDYwVjYwWiIgZmlsbD0iIzhhMmJlMiIvPgo8L3N2Zz4K';">`}
+                        ` : `<img src="${product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src);">`}
                         <span class="stock-badge">EN STOCK</span>
                     </div>
                     <div class="product-info">
@@ -680,7 +647,7 @@ async function showProducts(category, event) {
 }
 
 // Open product modal
-async function openProductModal(category, index) {
+function openProductModal(category, index) {
     const product = productsData[category][index];
     if (!product) return;
     
@@ -696,43 +663,22 @@ async function openProductModal(category, index) {
     
     let mediaHTML = '';
     if (product.type === 'video') {
-        // Charger le média depuis IndexedDB si nécessaire
-        const mediaSrc = await loadProductMedia(product);
-        
-        if (mediaSrc) {
-            mediaHTML = `
-                <div class="modal-product-media">
-                    <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
-                        <source src="${mediaSrc}" type="video/mp4">
-                        Votre navigateur ne supporte pas la vidéo.
-                    </video>
-                    <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
-                        📹 Vidéo chargée depuis IndexedDB<br>
-                        <small>ID: ${product.mediaId || 'N/A'}</small>
-                    </div>
-                </div>
-            `;
-        } else {
-            mediaHTML = `
-                <div class="modal-product-media">
-                    <div style="background:linear-gradient(135deg,#8a2be2,#5dade2); height:300px; display:flex; align-items:center; justify-content:center; border-radius:12px;">
-                        <div style="text-align:center; color:white;">
-                            <div style="font-size:64px; margin-bottom:15px;">⚠️</div>
-                            <div style="font-size:18px; opacity:0.9;">Vidéo non trouvée</div>
-                            <div style="font-size:14px; opacity:0.7; margin-top:10px;">ID: ${product.mediaId || 'N/A'}</div>
-                            <div style="font-size:12px; opacity:0.6; margin-top:5px;">Le fichier a peut-être été supprimé</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-    } else if (product.type === 'image') {
-        // Charger l'image depuis IndexedDB si nécessaire
-        const mediaSrc = await loadProductMedia(product);
-        
         mediaHTML = `
             <div class="modal-product-media">
-                <img src="${mediaSrc || product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src); this.style.display='none'; this.parentElement.innerHTML='<div style=\\'background:linear-gradient(135deg,#8a2be2,#5dade2); height:200px; display:flex; align-items:center; justify-content:center; border-radius:12px; color:white;\\'><div style=\\'text-align:center;\\'><div style=\\'font-size:48px; margin-bottom:10px;\\'>⚠️</div><div>Image non trouvée</div></div></div>';">
+                <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
+                    <source src="${product.media}" type="video/mp4">
+                    Votre navigateur ne supporte pas la vidéo.
+                </video>
+                <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
+                    � Vidéo hébergée sur le serveur<br>
+                    <small>${product.serverHosted ? 'Upload automatique' : 'URL manuelle'}</small>
+                </div>
+            </div>
+        `;
+    } else if (product.type === 'image') {
+        mediaHTML = `
+            <div class="modal-product-media">
+                <img src="${product.media}" alt="${product.name}" onerror="console.log('Image error:', this.src);">
             </div>
         `;
     }
@@ -1080,38 +1026,70 @@ function handleFileUpload(input) {
     if (file) {
         const reader = new FileReader();
         
-        reader.onload = function(e) {
-            // Créer un objet URL temporaire pour la prévisualisation
-            const tempUrl = e.target.result;
+        reader.onload = async function(e) {
+            const base64Data = e.target.result;
             
-            document.getElementById('upload-status').textContent = `Fichier sélectionné: ${file.name}`;
+            document.getElementById('upload-status').textContent = `Upload en cours: ${file.name}...`;
             document.getElementById('upload-preview').innerHTML = `
                 ${file.type.startsWith('video/') ? 
-                    `<video src="${tempUrl}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
-                    `<img src="${tempUrl}" style="max-width:100%; max-height:150px; border-radius:8px;">`
+                    `<video src="${base64Data}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
+                    `<img src="${base64Data}" style="max-width:100%; max-height:150px; border-radius:8px;">`
                 }
-                <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:8px;">${file.name}</div>
+                <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:8px;">Upload en cours sur le serveur...</div>
             `;
             
-            // Stocker le fichier en base64 pour le sauvegarder
-            document.getElementById('f-media').value = tempUrl;
-            document.getElementById('f-media-url').value = ''; // Vider l'URL manuelle
-            
-            adminShowToast('📎 Fichier uploadé avec succès');
+            try {
+                // Upload vers votre serveur Railway
+                const response = await fetch('https://le-professeur-5962-production.up.railway.app/api/upload', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        file: base64Data,
+                        type: file.type.startsWith('video/') ? 'video' : 'image'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Succès : utiliser l'URL du serveur
+                    document.getElementById('f-media').value = result.url;
+                    document.getElementById('f-media-url').value = result.url;
+                    
+                    document.getElementById('upload-status').textContent = `✅ Upload réussi: ${file.name}`;
+                    document.getElementById('upload-preview').innerHTML = `
+                        ${file.type.startsWith('video/') ? 
+                            `<video src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
+                            `<img src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;">`
+                        }
+                        <div style="font-size:12px; color:rgba(76, 175, 80, 0.9); margin-top:8px;">✅ ${file.name}</div>
+                    `;
+                    
+                    adminShowToast('� Fichier uploadé sur le serveur avec succès');
+                } else {
+                    throw new Error(result.error || 'Upload échoué');
+                }
+                
+            } catch (error) {
+                console.error('Erreur upload:', error);
+                document.getElementById('upload-status').textContent = `❌ Erreur: ${error.message}`;
+                adminShowToast('❌ Erreur lors de l\'upload sur le serveur');
+            }
         };
         
         reader.readAsDataURL(file);
     }
 }
 
-async function saveProduct() {
+function saveProduct() {
     const name = document.getElementById('f-name').value.trim();
     const desc = document.getElementById('f-desc').value.trim();
     const details = document.getElementById('f-details').value.trim();
     const rating = document.getElementById('f-rating').value;
     const type = document.getElementById('f-type').value;
     const mediaUrl = document.getElementById('f-media-url').value.trim();
-    const uploadedFile = document.getElementById('f-media').value;
     
     const category = document.querySelector('.admin-select-btn[data-cat].active').dataset.cat;
     const editIdx = document.getElementById('edit-idx').value;
@@ -1122,35 +1100,26 @@ async function saveProduct() {
         return;
     }
     
+    if (!mediaUrl) {
+        adminShowToast('❌ Veuillez uploader une image ou vidéo');
+        return;
+    }
+    
     try {
-        let media = mediaUrl;
-        let mediaId = null;
-        
-        // Si c'est un fichier uploadé (base64), le sauvegarder dans IndexedDB
-        if (uploadedFile && uploadedFile.startsWith('data:')) {
-            mediaId = `${category}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            await storageManager.saveMedia(mediaId, uploadedFile);
-            media = `indexeddb://${mediaId}`; // Référence speciale
-        }
-        
         const product = {
             name,
             description: desc,
             details,
             rating,
             type,
-            media,
-            thumbnail: media,
-            mediaId, // Pour savoir où récupérer le fichier
-            uploadedFile: !!uploadedFile
+            media: mediaUrl,
+            thumbnail: mediaUrl,
+            uploadedFile: true,
+            serverHosted: true // Marquer que c'est sur le serveur
         };
         
         if (editIdx !== '' && editCatOrigin !== '') {
-            // Mode édition - supprimer l'ancien média si nécessaire
-            const oldProduct = productsData[editCatOrigin][parseInt(editIdx)];
-            if (oldProduct?.mediaId) {
-                await storageManager.deleteMedia(oldProduct.mediaId);
-            }
+            // Mode édition
             productsData[editCatOrigin][parseInt(editIdx)] = product;
             adminShowToast('✅ Produit modifié avec succès');
         } else {
@@ -1159,7 +1128,7 @@ async function saveProduct() {
             adminShowToast('✅ Produit ajouté avec succès');
         }
         
-        // Sauvegarder seulement les métadonnées dans localStorage
+        // Sauvegarder dans localStorage (plus besoin d'IndexedDB)
         localStorage.setItem('products_data', JSON.stringify(productsData));
         
         // Fermer le formulaire
@@ -1175,11 +1144,7 @@ async function saveProduct() {
         
     } catch (error) {
         console.error('Erreur sauvegarde produit:', error);
-        if (error.name === 'QuotaExceededError') {
-            adminShowToast('❌ Espace de stockage insuffisant. Essayez avec des fichiers plus petits.');
-        } else {
-            adminShowToast('❌ Erreur lors de la sauvegarde');
-        }
+        adminShowToast('❌ Erreur lors de la sauvegarde');
     }
 }
 
