@@ -1024,62 +1024,80 @@ function setRating(rating) {
 function handleFileUpload(input) {
     const file = input.files[0];
     if (file) {
-        const reader = new FileReader();
+        // Vérifier la taille du fichier (max 100MB)
+        const maxSize = 100 * 1024 * 1024; // 100MB
+        if (file.size > maxSize) {
+            adminShowToast('❌ Fichier trop volumineux (max 100MB)');
+            return;
+        }
         
-        reader.onload = async function(e) {
-            const base64Data = e.target.result;
-            
+        // Prévisualisation du fichier
+        const reader = new FileReader();
+        reader.onload = function(e) {
             document.getElementById('upload-status').textContent = `Upload en cours: ${file.name}...`;
             document.getElementById('upload-preview').innerHTML = `
                 ${file.type.startsWith('video/') ? 
-                    `<video src="${base64Data}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
-                    `<img src="${base64Data}" style="max-width:100%; max-height:150px; border-radius:8px;">`
+                    `<video src="${e.target.result}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
+                    `<img src="${e.target.result}" style="max-width:100%; max-height:150px; border-radius:8px;">`
                 }
                 <div style="font-size:12px; color:rgba(255,255,255,0.7); margin-top:8px;">Upload en cours sur le serveur...</div>
             `;
-            
-            try {
-                // Upload vers votre serveur Railway
-                const response = await fetch('https://le-professeur-5962-production.up.railway.app/api/upload', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        file: base64Data,
-                        type: file.type.startsWith('video/') ? 'video' : 'image'
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.success) {
-                    // Succès : utiliser l'URL du serveur
-                    document.getElementById('f-media').value = result.url;
-                    document.getElementById('f-media-url').value = result.url;
-                    
-                    document.getElementById('upload-status').textContent = `✅ Upload réussi: ${file.name}`;
-                    document.getElementById('upload-preview').innerHTML = `
-                        ${file.type.startsWith('video/') ? 
-                            `<video src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
-                            `<img src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;">`
-                        }
-                        <div style="font-size:12px; color:rgba(76, 175, 80, 0.9); margin-top:8px;">✅ ${file.name}</div>
-                    `;
-                    
-                    adminShowToast('� Fichier uploadé sur le serveur avec succès');
-                } else {
-                    throw new Error(result.error || 'Upload échoué');
-                }
-                
-            } catch (error) {
-                console.error('Erreur upload:', error);
-                document.getElementById('upload-status').textContent = `❌ Erreur: ${error.message}`;
-                adminShowToast('❌ Erreur lors de l\'upload sur le serveur');
-            }
         };
-        
         reader.readAsDataURL(file);
+        
+        // Créer FormData pour l'upload direct
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        // Upload vers le serveur
+        fetch('https://le-professeur-5962-production.up.railway.app/api/upload', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            console.log('📡 Réponse serveur:', response.status, response.statusText);
+            
+            if (!response.ok) {
+                throw new Error(`Erreur serveur ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(result => {
+            console.log('✅ Résultat upload:', result);
+            
+            if (result.success) {
+                // Succès : utiliser l'URL du serveur
+                document.getElementById('f-media').value = result.url;
+                document.getElementById('f-media-url').value = result.url;
+                
+                document.getElementById('upload-status').textContent = `✅ Upload réussi: ${file.name}`;
+                document.getElementById('upload-preview').innerHTML = `
+                    ${file.type.startsWith('video/') ? 
+                        `<video src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;" controls></video>` :
+                        `<img src="${result.url}" style="max-width:100%; max-height:150px; border-radius:8px;">`
+                    }
+                    <div style="font-size:12px; color:rgba(76, 175, 80, 0.9); margin-top:8px;">✅ ${file.name}</div>
+                    <div style="font-size:10px; color:rgba(255,255,255,0.6); margin-top:4px;">URL: ${result.url}</div>
+                `;
+                
+                adminShowToast('🚀 Fichier uploadé sur le serveur avec succès');
+            } else {
+                throw new Error(result.error || 'Upload échoué');
+            }
+        })
+        .catch(error => {
+            console.error('❌ Erreur complète upload:', error);
+            document.getElementById('upload-status').textContent = `❌ Erreur: ${error.message}`;
+            document.getElementById('upload-preview').innerHTML = `
+                <div style="text-align:center; color:#ff6b6b; padding:10px; border-radius:8px; background:rgba(255,107,107,0.1);">
+                    <div style="font-size:24px; margin-bottom:8px;">❌</div>
+                    <div style="font-size:14px; font-weight:bold;">Erreur d'upload</div>
+                    <div style="font-size:12px; margin-top:4px;">${error.message}</div>
+                    <div style="font-size:10px; margin-top:8px; opacity:0.7;">Vérifiez votre connexion et réessayez</div>
+                </div>
+            `;
+            adminShowToast('❌ Erreur lors de l\'upload sur le serveur');
+        });
     }
 }
 

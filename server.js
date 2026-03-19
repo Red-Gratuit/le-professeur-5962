@@ -1,50 +1,77 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.static('.'));
 
-const JSONBIN_ID = process.env.JSONBIN_ID || '6997693b43b1c97be98c5829';
-const JSONBIN_KEY = process.env.JSONBIN_KEY || '$2a$10$HDh.vZjjM5lGtDsPLbcqce9WhEZ.bdlPmKbTRMpEM4tP86RS3dlLW';
-const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME || 'dbkcnqgyb';
-const API_KEY = process.env.CLOUDINARY_API_KEY || '366469192989696';
-const API_SECRET = process.env.CLOUDINARY_API_SECRET || 'L7kwi2I_w_Pv0els3LBhnS56LSk';
-const UPLOAD_PRESET = process.env.CLOUDINARY_UPLOAD_PRESET || 'le-professeur';
+// Créer les dossiers s'ils n'existent pas
+const uploadsDir = path.join(__dirname, 'uploads');
+const videosDir = path.join(uploadsDir, 'videos');
+const imagesDir = path.join(uploadsDir, 'images');
 
-// ✅ UPLOAD vers Cloudinary
-app.post('/api/upload', async (req, res) => {
-    try {
-        const { file, type } = req.body;
-        if (!file) return res.status(400).json({ error: 'Fichier manquant' });
-
-        const resourceType = type === 'video' ? 'video' : 'image';
-
-        const formData = new URLSearchParams();
-        formData.append('file', file);
-        formData.append('upload_preset', UPLOAD_PRESET);
-        // ✅ Nom unique sans slash
-        formData.append('public_id', `prof_${Date.now()}`);
-
-        console.log(`Upload ${resourceType} vers Cloudinary...`);
-
-        const r = await fetch(
-            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/${resourceType}/upload`,
-            { method: 'POST', body: formData }
-        );
-
-        const text = await r.text();
-        console.log('Cloudinary:', text.substring(0, 200));
-        const data = JSON.parse(text);
-
-        if (data.secure_url) {
-            res.json({ success: true, url: data.secure_url });
-        } else {
-            res.status(500).json({ error: 'Upload échoué', details: data });
-        }
-    } catch(e) {
-        console.log('ERREUR UPLOAD:', e.message);
-        res.status(500).json({ error: e.message });
+[uploadsDir, videosDir, imagesDir].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
     }
 });
+
+// Configuration de Multer pour l'upload direct
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        const folder = file.mimetype.startsWith('video/') ? 'videos' : 'images';
+        cb(null, path.join(__dirname, 'uploads', folder));
+    },
+    filename: function (req, file, cb) {
+        // Nom unique avec timestamp
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ 
+    storage: storage,
+    limits: {
+        fileSize: 100 * 1024 * 1024 // 100MB max
+    }
+});
+
+// ✅ UPLOAD direct sur le serveur Railway
+app.post('/api/upload', upload.single('file'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: 'Fichier manquant' });
+        }
+
+        const file = req.file;
+        const fileType = file.mimetype.startsWith('video/') ? 'video' : 'image';
+        
+        // Construire l'URL publique
+        const publicUrl = `https://le-professeur-5962-production.up.railway.app/uploads/${fileType === 'video' ? 'videos' : 'images'}/${file.filename}`;
+        
+        console.log(`✅ ${fileType} uploadé: ${file.filename}`);
+        console.log(`📡 URL publique: ${publicUrl}`);
+        
+        res.json({ 
+            success: true, 
+            url: publicUrl,
+            filename: file.filename,
+            size: file.size,
+            type: fileType
+        });
+        
+    } catch (error) {
+        console.error('❌ Erreur upload:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Servir les fichiers uploadés statiquement
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+const JSONBIN_ID = process.env.JSONBIN_ID || '6997693b43b1c97be98c5829';
+const JSONBIN_KEY = process.env.JSONBIN_KEY || '$2a$10$HDh.vZjjM5lGtDsPLbcqce9WhEZ.bdlPmKbTRMpEM4tP86RS3dlLW';
 
 // ✅ GET produits depuis JSONBin
 app.get('/api/products', async (req, res) => {
