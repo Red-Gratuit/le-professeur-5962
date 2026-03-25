@@ -619,7 +619,7 @@ function showProducts(category, event) {
                 <div class="product-card" onclick="openProductModal('${category}', ${index})" style="animation-delay: ${index * 0.08}s">
                     <div class="product-image">
                         ${product.type === 'video' ? `
-                            <video muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
+                            <video autoplay muted loop playsinline onclick="event.stopPropagation(); try { if (this.paused) this.play(); else this.pause(); } catch(e) { console.log('Video play error:', e); }">
                                 <source src="${product.media}" type="video/mp4" onerror="console.log('Video loading error:', this.src); this.parentElement.style.display='none';">
                             </video>
                             <div class="play-icon" onclick="event.stopPropagation(); const video = this.parentElement.querySelector('video'); if (video) try { if (video.paused) video.play(); else video.pause(); } catch(e) { console.log('Video play error:', e); }">▶</div>
@@ -665,12 +665,12 @@ function openProductModal(category, index) {
     if (product.type === 'video') {
         mediaHTML = `
             <div class="modal-product-media">
-                <video controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
+                <video autoplay controls loop muted playsinline onerror="console.log('Modal video error:', this.src);">
                     <source src="${product.media}" type="video/mp4">
                     Votre navigateur ne supporte pas la vidéo.
                 </video>
                 <div style="text-align:center; padding:20px; color:rgba(255,255,255,0.6); font-size:14px;">
-                    � Vidéo hébergée sur le serveur<br>
+                    🚀 Vidéo hébergée sur le serveur<br>
                     <small>${product.serverHosted ? 'Upload automatique' : 'URL manuelle'}</small>
                 </div>
             </div>
