@@ -520,14 +520,12 @@ function contactForProduct() {
         title: '📦 Commander ce produit',
         message: `Vous voulez commander:\n${currentProduct.name}\n\nChoisissez votre contact:`,
         buttons: [
-            {id: 'snap1', type: 'default', text: '👻 Snap Principal'},
-            {id: 'snap2', type: 'default', text: '👻 Snap Secours'},
+            {id: 'snap1', type: 'default', text: '👻 Snapchat'},
             {id: 'signal', type: 'default', text: '📱 Signal'},
             {id: 'cancel', type: 'cancel'}
         ]
     }, (buttonId) => {
         if (buttonId === 'snap1') openSnapchat1();
-        if (buttonId === 'snap2') openSnapchat2();
         if (buttonId === 'signal') openSignal();
         if (buttonId !== 'cancel') closeModal();
     });
@@ -535,12 +533,6 @@ function contactForProduct() {
 
 // Contact functions
 function openSnapchat1() {
-    tg.openLink('https://www.snapchat.com/add/pfsrtr');
-    showToast('📱 Ouverture de Snapchat...');
-    if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
-}
-
-function openSnapchat2() {
     tg.openLink('https://www.snapchat.com/add/prfsec');
     showToast('📱 Ouverture de Snapchat...');
     if (tg.HapticFeedback && typeof tg.HapticFeedback.notificationOccurred === 'function') tg.HapticFeedback.notificationOccurred('success');
@@ -564,14 +556,12 @@ function orderNow() {
         title: '📦 Passer commande',
         message: 'Choisissez votre moyen de contact préféré pour passer commande rapidement:',
         buttons: [
-            {id: 'snap1', type: 'default', text: '👻 Snap Principal'},
-            {id: 'snap2', type: 'default', text: '👻 Snap Secours'},
+            {id: 'snap1', type: 'default', text: '👻 Snapchat'},
             {id: 'signal', type: 'default', text: '📱 Signal'},
             {id: 'potato', type: 'default', text: '🥔 Canal Potato'}
         ]
     }, (buttonId) => {
         if (buttonId === 'snap1') openSnapchat1();
-        if (buttonId === 'snap2') openSnapchat2();
         if (buttonId === 'signal') openSignal();
         if (buttonId === 'potato') openPotato();
     });
