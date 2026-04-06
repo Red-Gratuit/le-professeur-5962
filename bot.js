@@ -1,4 +1,6 @@
 const TelegramBot = require('node-telegram-bot-api');
+const fs = require('fs');
+const path = require('path');
 
 const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlpFjVbdc';
 const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
@@ -7,12 +9,42 @@ const ADMIN_ID = process.env.ADMIN_ID || '8310891728';
 
 const bot = new TelegramBot(TOKEN, { polling: true });
 
-let users = new Set();
+// ===== PERSISTANCE DES UTILISATEURS =====
+const dataDir = path.join(__dirname, 'data');
+const usersFile = path.join(dataDir, 'users.json');
+
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+function loadUsers() {
+    try {
+        if (fs.existsSync(usersFile)) {
+            const data = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+            return new Set(data);
+        }
+    } catch (e) {
+        console.error('Erreur chargement utilisateurs:', e);
+    }
+    return new Set();
+}
+
+function saveUsers() {
+    try {
+        fs.writeFileSync(usersFile, JSON.stringify([...users]));
+    } catch (e) {
+        console.error('Erreur sauvegarde utilisateurs:', e);
+    }
+}
+
+let users = loadUsers();
+console.log(`📂 ${users.size} utilisateurs chargés depuis le fichier`);
 
 // ✅ /start
 bot.onText(/\/start/, async (msg) => {
     const chatId = msg.chat.id;
     users.add(chatId);
+    saveUsers();
 
     await bot.sendPhoto(chatId, BANNER_URL, {
         caption:
@@ -35,15 +67,15 @@ bot.onText(/\/start/, async (msg) => {
     });
 });
 
-// ✅ /broadcast
-bot.onText(/\/broadcast (.+)/, async (msg, match) => {
+// ✅ /broadcast (supporte les retours à la ligne)
+bot.onText(/\/broadcast([\s\S]+)/, async (msg, match) => {
     const chatId = msg.chat.id;
 
     if (String(chatId) !== String(ADMIN_ID)) {
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
-    const message = match[1];
+    const message = match[1].trim();
     let success = 0;
     let fail = 0;
 
