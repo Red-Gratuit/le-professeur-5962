@@ -78,18 +78,24 @@ bot.onText(/\/start/, async (msg) => {
 });
 
 // /broadcast (supporte les retours à la ligne)
-bot.onText(/\/broadcast([\s\S]+)/, async (msg, match) => {
+bot.on('message', async (msg) => {
+    if (!msg.text || !msg.text.startsWith('/broadcast ')) return;
+    
     const chatId = msg.chat.id;
 
     if (String(chatId) !== String(ADMIN_ID)) {
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
-    const message = match[1].trim();
+    const message = msg.text.replace('/broadcast ', '');
+    if (!message.trim()) {
+        return bot.sendMessage(chatId, '❌ Message vide. Usage: /broadcast Votre message');
+    }
+
     let success = 0;
     let fail = 0;
 
-    bot.sendMessage(chatId, `⏳ Envoi en cours à ${users.size} utilisateurs...`);
+    await bot.sendMessage(chatId, `⏳ Envoi en cours à ${users.size} utilisateurs...`);
 
     for (const userId of users) {
         try {
