@@ -46,7 +46,7 @@ function saveUsers() {
 }
 
 let users = loadUsers();
-console.log(`📂 ${users.size} utilisateurs chargés depuis le fichier`);
+console.log(`📂 ${users.size} utilisateurs chargés depuis: ${usersFile}`);
 
 // ===== COMMANDES BOT =====
 
