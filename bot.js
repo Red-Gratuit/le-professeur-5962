@@ -14,10 +14,26 @@ const bot = new TelegramBot(TOKEN, {
     }
 });
 
-// Nettoyer l'ancienne connexion avant de démarrer le polling
-bot.deleteWebHook({ drop_pending_updates: true }).then(() => {
-    console.log('🔄 Ancienne connexion nettoyée, démarrage du polling...');
-    bot.startPolling();
+// Attendre que l'ancienne instance s'arrête, puis démarrer le polling
+setTimeout(async () => {
+    try {
+        await bot.deleteWebHook({ drop_pending_updates: true });
+        console.log('🔄 Ancienne connexion nettoyée, démarrage du polling...');
+        bot.startPolling();
+    } catch (e) {
+        console.error('Erreur démarrage polling:', e.message);
+    }
+}, 5000);
+
+// Arrêt propre quand Railway stoppe le container
+process.on('SIGTERM', () => {
+    console.log('🛑 Arrêt du bot...');
+    bot.stopPolling();
+    process.exit(0);
+});
+process.on('SIGINT', () => {
+    bot.stopPolling();
+    process.exit(0);
 });
 
 // ===== PERSISTANCE DES UTILISATEURS =====
