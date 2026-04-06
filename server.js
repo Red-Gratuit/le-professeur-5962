@@ -119,6 +119,10 @@ bot.onText(/\/stats/, (msg) => {
 // ===== WEBHOOK TELEGRAM =====
 const WEBHOOK_PATH = `/bot${TOKEN}`;
 app.post(WEBHOOK_PATH, (req, res) => {
+    const text = req.body?.message?.text || '';
+    if (text.startsWith('/broadcast')) {
+        console.log('🔍 WEBHOOK RAW TEXT:', JSON.stringify(text));
+    }
     bot.processUpdate(req.body);
     res.sendStatus(200);
 });
