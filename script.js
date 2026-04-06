@@ -90,276 +90,51 @@ let currentPage = 'menu';
 let favorites = JSON.parse(localStorage.getItem('favorites') || '[]');
 let adminCurrentCat = 'stup';
 
-// Products Data - Chargé depuis localStorage (géré par le panel admin)
+// Products Data - Chargé depuis le serveur (géré par le panel admin)
 let productsData = {
     stup: [],
     tabac: [],
     puff: []
 };
 
-function loadProductsFromStorage() {
-    // Charger depuis localStorage uniquement si disponible, sinon utiliser les produits par défaut
-    const saved = localStorage.getItem('products_data');
-    
-    if (saved) {
-        try {
-            productsData = JSON.parse(saved);
-        } catch (e) {
-            console.error('Erreur chargement produits:', e);
-            initDefaultProducts();
+// Sync les produits vers le serveur (pour que tout le monde les voit)
+async function syncProductsToServer() {
+    try {
+        const res = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(productsData)
+        });
+        const data = await res.json();
+        if (data.success) {
+            console.log('✅ Produits synchronisés avec le serveur');
         }
-    } else {
-        initDefaultProducts();
+    } catch (e) {
+        console.error('❌ Erreur sync serveur:', e);
     }
-    
+}
+
+// Charger les produits depuis le serveur
+async function loadProductsFromStorage() {
+    try {
+        const res = await fetch('/api/products');
+        const data = await res.json();
+        productsData = data || { stup: [], tabac: [], puff: [] };
+    } catch (e) {
+        console.error('Erreur chargement produits depuis serveur:', e);
+        productsData = { stup: [], tabac: [], puff: [] };
+    }
     updateCategoryCounts();
 }
+
 // Initialiser les produits par défaut
-function initDefaultProducts() {
+async function initDefaultProducts() {
     productsData = {
-        stup: [
-            {
-                name: "🍫STATICSIFT🍫 • PINEAPPLE 🍎",
-            description: "STATICSIFT de folie terps développé",
-            type: "video",
-            media: "videos/stup1.mp4",
-            thumbnail: "videos/stup1.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Un STATICSIFT de folie terps développer comme il faut, encore glassy du feu 🔥\n\nQUANTITÉS DISPO : 10G🍎25G🍎50G🍎100G🍎200G🍎500G🍎1K🍎+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍫DRYSIFT🍫 • ISLAND MIMOSA 🏝️🌻",
-            description: "DRYSIFT exceptionnel qualité static",
-            type: "video",
-            media: "videos/stup2.mp4",
-            thumbnail: "videos/stup2.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Les amis je ne vais pas vous le dire deux fois, ce drysift est un mensonge on ne devrait pas pouvoir appeler ça un dry car vue le curage les terps et le développement on est plus sur un static de la fusée les amis foncer il n'y en aura pas pour tout le monde🔥\n\nQUANTITÉS DISPO : 10G🟢25G🟢50G🟢100G🟢200G🟢500G🟢1K🟢+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍫DRYSIFT MOUNTAIN GIANTS 120u🍫 • GAMEBOY COLORS 🧁",
-            description: "Mountain Giants Farm - Glassy premium",
-            type: "video",
-            media: "videos/stup3.mp4",
-            thumbnail: "videos/stup3.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Un DRYSIFT de la fameuse farm MOUNTAIN GIANTS de folie terps développer comme il faut, encore glassy du feu 🔥\n\n• ICE CREAM CAKE 🧁\n\nQUANTITÉS DISPO : 10G ⛰️ 25G ⛰️ 50G ⛰️ 100G ⛰️ 200G ⛰️ 500G ⛰️ 1K⛰️+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸 CALI US PREMIUM SHELF • GAS FACE ⛽️",
-            description: "Cali unique - Bonbon & boisé",
-            type: "video",
-            media: "videos/stup4.mp4",
-            thumbnail: "videos/stup4.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Une cali unique et spectaculaire la GAS FACE est un mélange de bonbon et de note de fond boisé un régale pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍫DRYSIFT MOUNTAIN GIANTS 120u🍫 • RAW (LONDON POUND CAKE)🧁",
-            description: "Format 25g plaquette - Goût bonbon",
-            type: "video",
-            media: "videos/stup5.mp4",
-            thumbnail: "videos/stup5.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Un DRYSIFT de la fameuse farm MOUNTAIN GIANTS format inédit de 25g par plaquette conditionner en feuille slim pour vous faire kiffer, goût prononcer de bonbon 🔥\n\nQUANTITÉS DISPO : 10G ⛰️ 25G ⛰️ 50G ⛰️ 100G ⛰️ 200G ⛰️ 500G ⛰️ 1K⛰️+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇳🇱SHOP NL 🇺🇸 • AMNESIA HAZE 🟢",
-            description: "Shop légendaire - Original 12/10",
-            type: "video",
-            media: "videos/stup6.mp4",
-            thumbnail: "videos/stup6.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Une shop d'exception plus besoin de vous la présenter elle est légendaire et connu, pour les connaisseurs il s'agit de la première génétique de A.H le produit original du 12/10 les amis🔥\n\nQUANTITÉS DISPO : 10G🟢25G🟢50G🟢100G🟢200G🟢500G🟢1K🟢+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸🍯PIATELLA UNCLE'S FARM🍯🇺🇸",
-            description: "Importé USA - Voyage garanti",
-            type: "video",
-            media: "videos/stup7.mp4",
-            thumbnail: "videos/stup7.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🇺🇸De la folie a tout niveau les amis ce PIATELLA importés tout droit des USA vous fera voyager jusqu'à là-bas 🇺🇸\n\nQUANTITÉS DISPO : 1G🍯3G🍯5G🍯10G🍯25G🍯50G🍯100G🍯\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🟡JAUNE MOUSSEUX🟡 • MILKA🧽",
-            description: "Top qualité - Note caramel",
-            type: "video",
-            media: "videos/stup8.mp4",
-            thumbnail: "videos/stup8.mp4",
-            rating: "⭐⭐⭐⭐",
-            details: "🔥Jaune mousseux de top qualité pas du cbd toug degueulasse, note de tête beuh note de fond caramel 🔥\n\nQUANTITÉS DISPO : 1G🧽3G🧽5G🧽10G🧽25G🧽50G🧽100G🧽200G🧽500G🧽1K🧽 +PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸 CALI US PREMIUM SHELF • GELATO 33 🍦",
-            description: "Cali spectaculaire - Bonbon & boisé",
-            type: "video",
-            media: "videos/stup9.mp4",
-            thumbnail: "videos/stup9.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Une cali unique et spectaculaire la GELATO 33 est un mélange de bonbon et de note de fond boisé un régale pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸CALI US🇺🇸 • N9🍾",
-            description: "Dérivé NEWBEATLE 1 - Plus fruité",
-            type: "video",
-            media: "videos/stup10.mp4",
-            thumbnail: "videos/stup10.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥La N9 est un dériver de la NEWBEATLE 1 en plus fruité et plus douce une Cali connu et reconnu au US🔥\n\nQUANTITÉS DISPO : 1G🟢3G🟢5G🟢10G🟢25G🟢50G🟢100G🟢200G🟢500G🟢 +PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸🍯LIVE ROSIN PUR 🍯🇺🇸 • LEMON 🍋",
-            description: "Concentré haut de gamme sans solvant",
-            type: "video",
-            media: "videos/stup11.mp4",
-            thumbnail: "videos/stup11.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Le live rosin pur est un concentrer de cannabis haut de gammes (fresh Frozen ou WPFF) transformer d'abord en LIVE HASH (bubble Hash) puis presser a chaud (rosin) sans aucun solvant chimique (pas de buthane, pas de co2 pas de propane…)🔥\n\nSouvent apprécier pour sa pureté, son goût prononcer et sa Méthode d'extraction sans solvant\n\n💡Pur signifie souvent sans additif, sans terpènes ajouter, sans coupe uniquement la résine de la plante💡\n\nQUANTITÉS DISPO : 1G🍯3G🍯5G🍯10G🍯25G🍯50G🍯100G🍯\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🇺🇸CALI US PREMIUM🇺🇸 • BISCOTTIZ 🌾",
-            description: "Cali favorite de l'équipe",
-            type: "video",
-            media: "videos/stup12.mp4",
-            thumbnail: "videos/stup12.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "⚡️ La BISCOTTIZ fait partie des Cali favorite de l'équipe du professeur, comme une impression de revenir au début des cali ⚡️\n\n🔥QUANTITÉS DISPONIBLES🔥\n10G🟢25G🟢50G🟢100G🟢200G🟢500G🟢\n\n⭕️PV POUR PLUS D'INFOS⭕️"
-        },
-        {
-            name: "🫒OLIVETTE FRESH FROZEN GOLDEN TIGER FARM🫒 • GMO COOKIES 🧅🍪",
-            description: "Inédit - Note cookie & oignon caramélisé",
-            type: "video",
-            media: "videos/stup13.mp4",
-            thumbnail: "videos/stup13.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥La famille de la fusée inédit dans la zone, olivette de fresh Frozen de la fameuse farm's GOLDEN TIGER, curée au max un fresh Frozen de qualité, note de tête cookie, note de fond oignon caramélisés 🔥\n\n⭕️Dispo par : 2G🍪5G🍪10G(1 🫒)🍪20G🍪50G🍪100G🍪200G🍪500G🍪 +PV⭕️\n\n🚨PRIX EN PV🚨"
-        },
-        {
-            name: "🟣FRESH FROZEN WHOLE PLANT🟣 • PURPLE MOLT'S 🧬",
-            description: "Whole plant - Pureté légendaire",
-            type: "video",
-            media: "videos/stup14.mp4",
-            thumbnail: "videos/stup14.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🧬Les amis ce WHOLE PLANT FRESH FROZEN est tout simplement une dinguerie, ça méthode de traitement asser spécifique de fresh Frozen Qui consiste a recolter entièrement (fleurs, feuille, tige) non sécher et directement mis en congélation après la récolte fais de ce produit un produit a haute teneur en thc et d'une pureté légendaire 🧬\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-        {
-            name: "🍫DRYSIFT MOUNTAIN GIANTS 120u🍫 • GAMEBOY COLORS 🧁",
-            description: "Mountain Giants - Glassy premium",
-            type: "video",
-            media: "videos/stup15.mp4",
-            thumbnail: "videos/stup15.mp4",
-            rating: "⭐⭐⭐⭐⭐",
-            details: "🔥Un DRYSIFT de la fameuse farm MOUNTAIN GIANTS de folie terps développer comme il faut, encore glassy du feu 🔥\n\n• ICE CREAM CAKE 🧁\n\nQUANTITÉS DISPO : 10G ⛰️ 25G ⛰️ 50G ⛰️ 100G ⛰️ 200G ⛰️ 500G ⛰️ 1K⛰️+PV\n\n⭕️PRIX EN PV⭕️"
-        },
-{
-        name: "🟣 F.F WHOLE PLANT ROEMER FARMS 🟣",
-        description: "PURPLE MOLT'S 🧬 - Family's Farmeurs since 2019",
-        type: "video",
-        media: "videos/stup16.mp4",
-        thumbnail: "videos/stup16.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🟣 F.F WHOLE PLANT ROEMER FARMS SINCE 2019 FAMILY'S FARMEURS 🟣\n\n✅ VARIÉTÉS ✅\n• PURPLE MOLT'S 🧬\n\n🧬 Les amis ce WHOLE PLANT FRESH FROZEN est tout simplement une dinguerie, sa méthode de traitement assez spécifique de fresh Frozen qui consiste à récolter entièrement (fleurs, feuille, tige) non séché et directement mis en congélation après la récolte fait de ce produit un produit à haute teneur en THC et d'une pureté légendaire 🧬\n\nROEMER FARMS : Famille de cannaculteur connu et reconnu depuis 2019 🌾\n\nQUANTITÉS DISPO : 1G🟣2G🟣5G🟣10G🟣25G🟣50G🟣100G🟣200G🟣500G🟣1K🟣+PV\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🇺🇸 CALI BAG'S DOJA 🇺🇸",
-        description: "DAWG BREATH X COFFIN CANDY 🍭",
-        type: "video",
-        media: "videos/stup17.mp4",
-        thumbnail: "videos/stup17.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🇺🇸 CALI BAG'S DOJA 🇺🇸\n\n✅ VARIÉTÉS ✅\n• DAWG BREATH X COFFIN CANDY 🍭\n\n🔥 Plus besoin de vous présenter cette fameuse farm plus que connue, DOJA nous a sorti une Cali à la fois fruitée/sucrée et choquante du 12/10 🔥\n\nDISPO PAR : 1Bag(3.5g)🛍️2Bag's🛍️5Bag's🛍️10Bag's🛍️25Bag's🛍️+ PV\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸",
-        description: "WATERMELON SKITTLEZ 🍉🍦",
-        type: "video",
-        media: "videos/stup18.mp4",
-        thumbnail: "videos/stup18.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• WATERMELON SKITTLEZ 🍉🍦\n\n🔥 Une cali unique et spectaculaire, la WATERMELON SKITTLEZ est un mélange de bonbon et de note de fond boisé, un régal pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸",
-        description: "GAS FACE ⛽️",
-        type: "video",
-        media: "videos/stup19.mp4",
-        thumbnail: "videos/stup19.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🇺🇸 CALI US PREMIUM SHELF 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GAS FACE ⛽️\n\n🔥 Une cali unique et spectaculaire, la GAS FACE est un mélange de bonbon et de note de fond boisé, un régal pour vos papilles 🔥\n\nDISPO PAR : 10G/25G/50G/100G/200G/500G/1K +\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🇺🇸 HASH EXTRACT FULL MELT 🇺🇸",
-        description: "BLUEBERRY 🫐",
-        type: "video",
-        media: "videos/stup20.mp4",
-        thumbnail: "videos/stup20.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🇺🇸 HASH EXTRACT FULL MELT 🇺🇸\n\n✅ VARIÉTÉS ✅\n• BLUEBERRY 🫐\n\n🔥 Les amis le FULL MELT est un Hash qui fond complètement quand on le chauffe, sans laisser de résidus solides ni de matière végétale brûlée. On considère généralement que le FULL MELT correspond aux meilleurs grades de Hash, souvent noté 5 à 6 étoiles sur une échelle de qualité 🔥\n\n‼️ Fort goût de myrtille, défonce choquante ‼️\n\nDISPO PAR : 1G🫐3G🫐5G🫐10G🫐25G🫐50G🫐100G🫐300G🫐500G🫐1K🫐\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸",
-        description: "GUAVA 🥭",
-        type: "video",
-        media: "videos/stup21.mp4",
-        thumbnail: "videos/stup21.mp4",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🇺🇸 MOONROCK EAGLES BEAN'S FARM 🇺🇸\n\n✅ VARIÉTÉS ✅\n• GUAVA 🥭\n\n🔥 La voilà les connaisseurs savent déjà ahah la Moonrock de la farm EAGLES BEAN'S a fait des ravages 🔥\n\nLes revendeurs venez PV ça vous arrange 😉\n\nDISPO PAR : 1G🌒2G🌒5G🌒10G🌒25G🌒50G🌒100G🌒200G🌒500G🌒1K🌒\n\n⭕️PRIX EN PV⭕️"
-    }
-    ],
-    tabac: [
-        {
-            name: "🚬 PACK CIGARETTES PREMIUM",
-            description: "Sélection complète qualité",
-            type: "video",
-            media: "videos/tabac1.mp4",
-            thumbnail: "videos/tabac1.mp4",
-            rating: "⭐⭐⭐⭐",
-            details: "Pack complet de cigarettes premium. Marques variées disponibles :\n\n✅ Marlboro Red & Blue\n✅ Camel Blue\n✅ Lucky Strike\n✅ Winston\n✅ Et plus encore...\n\nTous formats disponibles. Livraison rapide et discrète.\n\n⭕️PRIX EN PV⭕️"
-        }
-    ],
-   puff: [
-    {
-        name: "🦅🔥 FALCON 16K 🦅🔥",
-        description: "🔥 16K JNR - Saveur intense, gros nuages et sensations garanties 💨⚡🌀",
-        type: "image",
-        media: "images/puff1.jpg",
-        thumbnail: "images/puff1.jpg",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🔥 16K JNR - Saveur intense, gros nuages et sensations garanties 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🦅 Falcon 18K 🦅",
-        description: "🔥 18K JNR - Encore plus puissant, saveur explosive et nuages XXL 💨⚡🌀",
-        type: "image",
-        media: "images/puff2.jpg",
-        thumbnail: "images/puff2.jpg",
-        rating: "⭐⭐⭐⭐",
-        details: "🔥 18K JNR - Encore plus puissant, saveur explosive et nuages XXL 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🦅 Falcon 28K 🦅",
-        description: "🔥 28K JNR - Ultra puissant, saveur extrême et nuages monstrueux 💨⚡🌀",
-        type: "image",
-        media: "images/puff3.jpg",
-        thumbnail: "images/puff3.jpg",
-        rating: "⭐⭐⭐⭐",
-        details: "🔥 28K JNR - Ultra puissant, saveur extrême et nuages monstrueux 💨⚡🌀\n\n⭕️PRIX EN PV⭕️"
-    },
-    {
-        name: "🌀 Shisha Hookah 22K ✨",
-        description: "🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨",
-        type: "image",
-        media: "images/puff4.jpg",
-        thumbnail: "images/puff4.jpg",
-        rating: "⭐⭐⭐⭐⭐",
-        details: "🔥 Shisha Hookah 22K - Saveur riche, tirage fluide et gros nuages garantis 💨✨\n\n⭕️PRIX EN PV⭕️"
-    }
-]
-};
-// Sauvegarder dans localStorage pour la persistance des cartes
-localStorage.setItem('products_data', JSON.stringify(productsData));
+        stup: [],
+        tabac: [],
+        puff: []
+    };
+    await syncProductsToServer();
 }
 
 // Mettre à jour les compteurs de catégories
@@ -816,9 +591,9 @@ function closeApp() {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    // Charger les produits AVANT d'afficher
-    loadProductsFromStorage();
+document.addEventListener('DOMContentLoaded', async () => {
+    // Charger les produits depuis le serveur AVANT d'afficher
+    await loadProductsFromStorage();
     
     // Afficher les produits STUP par défaut
     setTimeout(() => {
@@ -986,10 +761,10 @@ function adminEditProduct(index) {
     adminShowToast('✏️ Modification du produit');
 }
 
-function adminDeleteProduct(index) {
+async function adminDeleteProduct(index) {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce produit ?')) {
         productsData[adminCurrentCat].splice(index, 1);
-        localStorage.setItem('products_data', JSON.stringify(productsData));
+        await syncProductsToServer();
         adminLoadProducts();
         updateCategoryCounts();
         adminShowToast('🗑️ Produit supprimé');
@@ -1101,7 +876,7 @@ function handleFileUpload(input) {
     }
 }
 
-function saveProduct() {
+async function saveProduct() {
     const name = document.getElementById('f-name').value.trim();
     const desc = document.getElementById('f-desc').value.trim();
     const details = document.getElementById('f-details').value.trim();
@@ -1146,8 +921,8 @@ function saveProduct() {
             adminShowToast('✅ Produit ajouté avec succès');
         }
         
-        // Sauvegarder dans localStorage (plus besoin d'IndexedDB)
-        localStorage.setItem('products_data', JSON.stringify(productsData));
+        // Sauvegarder sur le serveur (visible par tout le monde)
+        await syncProductsToServer();
         
         // Fermer le formulaire
         closeProductForm();

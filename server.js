@@ -70,34 +70,33 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 // Servir les fichiers uploadés statiquement
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-const JSONBIN_ID = process.env.JSONBIN_ID || '6997693b43b1c97be98c5829';
-const JSONBIN_KEY = process.env.JSONBIN_KEY || '$2a$10$HDh.vZjjM5lGtDsPLbcqce9WhEZ.bdlPmKbTRMpEM4tP86RS3dlLW';
+// ✅ Stockage produits dans un fichier JSON local
+const productsFile = path.join(__dirname, 'data', 'products.json');
+const dataDir = path.join(__dirname, 'data');
 
-// ✅ GET produits depuis JSONBin
-app.get('/api/products', async (req, res) => {
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+if (!fs.existsSync(productsFile)) {
+    fs.writeFileSync(productsFile, JSON.stringify({ stup: [], tabac: [], puff: [] }));
+}
+
+// ✅ GET produits depuis le fichier local
+app.get('/api/products', (req, res) => {
     try {
-        const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}/latest`, {
-            headers: { 'X-Master-Key': JSONBIN_KEY }
-        });
-        const data = await r.json();
-        res.json(data.record || { stup: [], tabac: [], puff: [] });
+        const data = JSON.parse(fs.readFileSync(productsFile, 'utf-8'));
+        res.json(data);
     } catch(e) {
         console.log('ERREUR GET:', e.message);
         res.json({ stup: [], tabac: [], puff: [] });
     }
 });
 
-// ✅ POST produits vers JSONBin
-app.post('/api/products', async (req, res) => {
+// ✅ POST produits vers le fichier local
+app.post('/api/products', (req, res) => {
     try {
-        const r = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_ID}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Master-Key': JSONBIN_KEY
-            },
-            body: JSON.stringify(req.body)
-        });
+        fs.writeFileSync(productsFile, JSON.stringify(req.body, null, 2));
+        console.log('✅ Produits sauvegardés sur le serveur');
         res.json({ success: true });
     } catch(e) {
         console.log('ERREUR POST:', e.message);
