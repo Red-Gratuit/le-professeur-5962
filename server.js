@@ -50,8 +50,8 @@ console.log(`📂 ${users.size} utilisateurs chargés depuis: ${usersFile}`);
 
 // ===== COMMANDES BOT =====
 
-// /start
-bot.onText(/\/start/, async (msg) => {
+// /start (seulement si le message COMMENCE par /start)
+bot.onText(/^\/start$/,  async (msg) => {
     const chatId = msg.chat.id;
     users.add(chatId);
     saveUsers();
@@ -87,7 +87,8 @@ bot.on('message', async (msg) => {
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
-    const message = msg.text.replace('/broadcast ', '');
+    const message = msg.text.substring('/broadcast '.length);
+    console.log('📢 Broadcast message complet:', JSON.stringify(message));
     if (!message.trim()) {
         return bot.sendMessage(chatId, '❌ Message vide. Usage: /broadcast Votre message');
     }
