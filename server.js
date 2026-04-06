@@ -127,8 +127,8 @@ app.post(WEBHOOK_PATH, (req, res) => {
     res.sendStatus(200);
 });
 
-// Créer les dossiers s'ils n'existent pas
-const uploadsDir = path.join(__dirname, 'uploads');
+// Créer les dossiers s'ils n'existent pas (dans data/ pour le volume Railway)
+const uploadsDir = path.join(dataDir, 'uploads');
 const videosDir = path.join(uploadsDir, 'videos');
 const imagesDir = path.join(uploadsDir, 'images');
 
@@ -142,7 +142,7 @@ const imagesDir = path.join(uploadsDir, 'images');
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const folder = file.mimetype.startsWith('video/') ? 'videos' : 'images';
-        cb(null, path.join(__dirname, 'uploads', folder));
+        cb(null, path.join(uploadsDir, folder));
     },
     filename: function (req, file, cb) {
         // Nom unique avec timestamp
@@ -169,7 +169,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
         const fileType = file.mimetype.startsWith('video/') ? 'video' : 'image';
         
         // Construire l'URL publique
-        const publicUrl = `https://le-professeur-5962-production.up.railway.app/uploads/${fileType === 'video' ? 'videos' : 'images'}/${file.filename}`;
+        const publicUrl = `/uploads/${fileType === 'video' ? 'videos' : 'images'}/${file.filename}`;
         
         console.log(`✅ ${fileType} uploadé: ${file.filename}`);
         console.log(`📡 URL publique: ${publicUrl}`);
@@ -189,7 +189,7 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 });
 
 // Servir les fichiers uploadés statiquement
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(dataDir, 'uploads')));
 
 // ✅ Stockage produits dans un fichier JSON local
 const productsFile = path.join(dataDir, 'products.json');
