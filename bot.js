@@ -7,7 +7,18 @@ const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up
 const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
 const ADMIN_ID = process.env.ADMIN_ID || '8310891728';
 
-const bot = new TelegramBot(TOKEN, { polling: true });
+const bot = new TelegramBot(TOKEN, {
+    polling: {
+        params: { timeout: 30 },
+        autoStart: false
+    }
+});
+
+// Nettoyer l'ancienne connexion avant de démarrer le polling
+bot.deleteWebHook({ drop_pending_updates: true }).then(() => {
+    console.log('🔄 Ancienne connexion nettoyée, démarrage du polling...');
+    bot.startPolling();
+});
 
 // ===== PERSISTANCE DES UTILISATEURS =====
 const dataDir = path.join(__dirname, 'data');
