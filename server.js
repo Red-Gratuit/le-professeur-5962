@@ -2,9 +2,119 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const TelegramBot = require('node-telegram-bot-api');
+
 const app = express();
 app.use(express.json({ limit: '100mb' }));
 app.use(express.static('.'));
+
+// ===== CONFIG BOT TELEGRAM =====
+const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlpFjVbdc';
+const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
+const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
+const ADMIN_ID = process.env.ADMIN_ID || '8310891728';
+
+// Bot en mode webhook (pas de polling = pas de conflit 409)
+const bot = new TelegramBot(TOKEN, { webHook: false });
+
+// ===== PERSISTANCE DES UTILISATEURS =====
+const dataDir = path.join(__dirname, 'data');
+const usersFile = path.join(dataDir, 'users.json');
+
+if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+}
+
+function loadUsers() {
+    try {
+        if (fs.existsSync(usersFile)) {
+            const data = JSON.parse(fs.readFileSync(usersFile, 'utf-8'));
+            return new Set(data);
+        }
+    } catch (e) {
+        console.error('Erreur chargement utilisateurs:', e);
+    }
+    return new Set();
+}
+
+function saveUsers() {
+    try {
+        fs.writeFileSync(usersFile, JSON.stringify([...users]));
+    } catch (e) {
+        console.error('Erreur sauvegarde utilisateurs:', e);
+    }
+}
+
+let users = loadUsers();
+console.log(`📂 ${users.size} utilisateurs chargés depuis le fichier`);
+
+// ===== COMMANDES BOT =====
+
+// /start
+bot.onText(/\/start/, async (msg) => {
+    const chatId = msg.chat.id;
+    users.add(chatId);
+    saveUsers();
+
+    await bot.sendPhoto(chatId, BANNER_URL, {
+        caption:
+`👋 Bonjour Les Amis ! Bienvenue sur le bot officiel du Professeur 👨‍🏫🔥
+
+➡️ Ici, tu trouveras toutes nos infos, options d'envoi, actus et offres spéciales.
+
+🕐 Utilise /start pour afficher notre menu et passer commande facilement.
+
+🔒 Merci de faire confiance au Professeur et son équipe — Service rapide, discret & sécurisé. 💜`,
+
+        reply_markup: {
+            inline_keyboard: [[
+                {
+                    text: '👨‍🏫 MENU Le Professeur',
+                    web_app: { url: APP_URL }
+                }
+            ]]
+        }
+    });
+});
+
+// /broadcast (supporte les retours à la ligne)
+bot.onText(/\/broadcast([\s\S]+)/, async (msg, match) => {
+    const chatId = msg.chat.id;
+
+    if (String(chatId) !== String(ADMIN_ID)) {
+        return bot.sendMessage(chatId, '❌ Accès refusé !');
+    }
+
+    const message = match[1].trim();
+    let success = 0;
+    let fail = 0;
+
+    bot.sendMessage(chatId, `⏳ Envoi en cours à ${users.size} utilisateurs...`);
+
+    for (const userId of users) {
+        try {
+            await bot.sendMessage(userId, `📢 Message du Professeur :\n\n${message}`);
+            success++;
+        } catch(e) {
+            fail++;
+        }
+    }
+
+    bot.sendMessage(chatId, `✅ Broadcast terminé !\n✅ Envoyés : ${success}\n❌ Échoués : ${fail}`);
+});
+
+// /stats
+bot.onText(/\/stats/, (msg) => {
+    if (String(msg.chat.id) !== String(ADMIN_ID)) return;
+    bot.sendMessage(msg.chat.id, `📊 Statistiques :\n👥 Utilisateurs enregistrés : ${users.size}`);
+});
+
+// ===== WEBHOOK TELEGRAM =====
+const WEBHOOK_PATH = `/bot${TOKEN}`;
+app.post(WEBHOOK_PATH, (req, res) => {
+    bot.processUpdate(req.body);
+    res.sendStatus(200);
+});
 
 // Créer les dossiers s'ils n'existent pas
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -71,12 +181,8 @@ app.post('/api/upload', upload.single('file'), async (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ✅ Stockage produits dans un fichier JSON local
-const productsFile = path.join(__dirname, 'data', 'products.json');
-const dataDir = path.join(__dirname, 'data');
+const productsFile = path.join(dataDir, 'products.json');
 
-if (!fs.existsSync(dataDir)) {
-    fs.mkdirSync(dataDir, { recursive: true });
-}
 if (!fs.existsSync(productsFile)) {
     fs.writeFileSync(productsFile, JSON.stringify({ stup: [], tabac: [], puff: [] }));
 }
@@ -105,4 +211,14 @@ app.post('/api/products', (req, res) => {
 });
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server on port ${PORT}`));
+app.listen(PORT, async () => {
+    console.log(`Server on port ${PORT}`);
+    
+    // Enregistrer le webhook Telegram
+    try {
+        await bot.setWebHook(`${APP_URL}${WEBHOOK_PATH}`);
+        console.log(`🤖 Bot webhook enregistré: ${APP_URL}${WEBHOOK_PATH}`);
+    } catch (e) {
+        console.error('❌ Erreur webhook:', e.message);
+    }
+});

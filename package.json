@@ -5,8 +5,6 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "bot": "node bot.js",
-    "all": "node server.js & node bot.js",
     "build": "echo 'Build complete'"
   },
   "dependencies": {
