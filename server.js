@@ -29,8 +29,15 @@ function getMessageUserId(msg) {
     return msg?.from?.id ?? msg?.chat?.id;
 }
 
-// Bot en mode webhook (pas de polling = pas de conflit 409)
-const bot = new TelegramBot(TOKEN, { webHook: false });
+// Bot en mode polling pour éviter les soucis de webhook sur Railway
+const bot = new TelegramBot(TOKEN, { polling: true });
+bot.on('message', (msg) => {
+    const text = msg?.text || '';
+    console.log('📥 Message reçu:', { chatId: msg.chat?.id, userId: msg.from?.id, text });
+});
+bot.on('polling_error', (error) => {
+    console.error('❌ Erreur polling Telegram:', error);
+});
 
 // ===== PERSISTANCE DES UTILISATEURS =====
 const dataDir = path.join(__dirname, 'data');
@@ -141,15 +148,6 @@ bot.onText(/\/stats/, (msg) => {
 });
 
 // ===== WEBHOOK TELEGRAM =====
-const WEBHOOK_PATH = `/bot${TOKEN}`;
-app.post(WEBHOOK_PATH, (req, res) => {
-    const text = req.body?.message?.text || '';
-    if (text.startsWith('/broadcast')) {
-        console.log('🔍 WEBHOOK RAW TEXT:', JSON.stringify(text));
-    }
-    bot.processUpdate(req.body);
-    res.sendStatus(200);
-});
 
 // Créer les dossiers s'ils n'existent pas (dans data/ pour le volume Railway)
 const uploadsDir = path.join(dataDir, 'uploads');
@@ -248,12 +246,18 @@ app.post('/api/products', (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
     console.log(`Server on port ${PORT}`);
-    
-    // Enregistrer le webhook Telegram
+
     try {
-        await bot.setWebHook(`${APP_URL}${WEBHOOK_PATH}`);
-        console.log(`🤖 Bot webhook enregistré: ${APP_URL}${WEBHOOK_PATH}`);
+        await bot.deleteWebHook();
+        console.log('🧹 Webhook Telegram supprimé');
     } catch (e) {
-        console.error('❌ Erreur webhook:', e.message);
+        console.error('⚠️ Erreur suppression webhook:', e.message);
+    }
+
+    try {
+        bot.startPolling();
+        console.log('🤖 Bot polling démarré');
+    } catch (e) {
+        console.error('❌ Erreur démarrage polling:', e.message);
     }
 });
