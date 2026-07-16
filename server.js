@@ -23,6 +23,10 @@ function isAdmin(chatId) {
     return ADMIN_IDS.has(String(chatId));
 }
 
+function getMessageUserId(msg) {
+    return msg?.from?.id ?? msg?.chat?.id;
+}
+
 // Bot en mode webhook (pas de polling = pas de conflit 409)
 const bot = new TelegramBot(TOKEN, { webHook: false });
 
@@ -89,8 +93,9 @@ bot.onText(/^\/start$/,  async (msg) => {
 // /broadcast (supporte les retours à la ligne)
 bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
     const chatId = msg.chat.id;
+    const userId = getMessageUserId(msg);
 
-    if (!isAdmin(chatId)) {
+    if (!isAdmin(userId)) {
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
@@ -119,7 +124,7 @@ bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
 
 // /stats
 bot.onText(/\/stats/, (msg) => {
-    if (!isAdmin(msg.chat.id)) return;
+    if (!isAdmin(getMessageUserId(msg))) return;
     bot.sendMessage(msg.chat.id, `📊 Statistiques :\n👥 Utilisateurs enregistrés : ${users.size}`);
 });
 
