@@ -13,8 +13,9 @@ const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlp
 const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
 const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
 const DEFAULT_ADMIN_ID = '8973743301';
+const SECONDARY_ADMIN_ID = process.env.SECONDARY_ADMIN_ID || 'YOUR_SECONDARY_TELEGRAM_ID';
 const ADMIN_IDS = new Set(
-    [process.env.ADMIN_ID, DEFAULT_ADMIN_ID]
+    [process.env.ADMIN_ID, DEFAULT_ADMIN_ID, SECONDARY_ADMIN_ID]
         .filter(Boolean)
         .map(String)
 );
