@@ -12,16 +12,17 @@ app.use(express.static('.'));
 const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlpFjVbdc';
 const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
 const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
-const DEFAULT_ADMIN_ID = '8973743301';
-const SECONDARY_ADMIN_ID = process.env.SECONDARY_ADMIN_ID || '8973743301';
+const PRIMARY_ADMIN_ID = '8973743301';
 const ADMIN_IDS = new Set(
-    [process.env.ADMIN_ID, DEFAULT_ADMIN_ID, SECONDARY_ADMIN_ID]
+    [process.env.ADMIN_ID, process.env.SECONDARY_ADMIN_ID, PRIMARY_ADMIN_ID]
         .filter(Boolean)
         .map(String)
 );
 
-function isAdmin(chatId) {
-    return ADMIN_IDS.has(String(chatId));
+function isAdmin(msg) {
+    const userId = msg?.from?.id;
+    const chatId = msg?.chat?.id;
+    return ADMIN_IDS.has(String(userId)) || ADMIN_IDS.has(String(chatId));
 }
 
 function getMessageUserId(msg) {
@@ -97,7 +98,7 @@ bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
     const userId = getMessageUserId(msg);
     console.log('📨 /broadcast reçu:', { chatId, userId, text: msg.text });
 
-    if (!isAdmin(userId)) {
+    if (!isAdmin(msg)) {
         console.log('🚫 /broadcast refusé pour:', { chatId, userId });
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
@@ -135,7 +136,7 @@ bot.onText(/^\/whoami$/, async (msg) => {
 
 // /stats
 bot.onText(/\/stats/, (msg) => {
-    if (!isAdmin(getMessageUserId(msg))) return;
+    if (!isAdmin(msg)) return;
     bot.sendMessage(msg.chat.id, `📊 Statistiques :\n👥 Utilisateurs enregistrés : ${users.size}`);
 });
 
