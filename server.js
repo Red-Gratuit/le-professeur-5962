@@ -12,7 +12,7 @@ app.use(express.static('.'));
 const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlpFjVbdc';
 const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
 const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
-const ADMIN_ID = process.env.ADMIN_ID || '8310891728';
+const ADMIN_ID = process.env.ADMIN_ID || '8973743301';
 
 // Bot en mode webhook (pas de polling = pas de conflit 409)
 const bot = new TelegramBot(TOKEN, { webHook: false });
