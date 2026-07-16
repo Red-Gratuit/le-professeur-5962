@@ -95,8 +95,10 @@ bot.onText(/^\/start$/,  async (msg) => {
 bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
     const chatId = msg.chat.id;
     const userId = getMessageUserId(msg);
+    console.log('📨 /broadcast reçu:', { chatId, userId, text: msg.text });
 
     if (!isAdmin(userId)) {
+        console.log('🚫 /broadcast refusé pour:', { chatId, userId });
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
@@ -127,6 +129,7 @@ bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
 bot.onText(/^\/whoami$/, async (msg) => {
     const chatId = msg.chat.id;
     const userId = getMessageUserId(msg);
+    console.log('🧪 /whoami reçu:', { chatId, userId, text: msg.text });
     await bot.sendMessage(chatId, `🆔 Votre ID Telegram : ${userId}\n🗨️ Chat ID : ${chatId}`);
 });
 
