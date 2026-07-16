@@ -123,6 +123,13 @@ bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
     bot.sendMessage(chatId, `✅ Broadcast terminé !\n✅ Envoyés : ${success}\n❌ Échoués : ${fail}`);
 });
 
+// /whoami (diagnostic)
+bot.onText(/^\/whoami$/, async (msg) => {
+    const chatId = msg.chat.id;
+    const userId = getMessageUserId(msg);
+    await bot.sendMessage(chatId, `🆔 Votre ID Telegram : ${userId}\n🗨️ Chat ID : ${chatId}`);
+});
+
 // /stats
 bot.onText(/\/stats/, (msg) => {
     if (!isAdmin(getMessageUserId(msg))) return;
