@@ -12,7 +12,16 @@ app.use(express.static('.'));
 const TOKEN = process.env.BOT_TOKEN || '8596512035:AAHYFLDTbHv7LZq03peLIym-somlpFjVbdc';
 const APP_URL = process.env.APP_URL || 'https://le-professeur-5962-production.up.railway.app';
 const BANNER_URL = process.env.BANNER_URL || 'https://res.cloudinary.com/dbkcnqgyb/image/upload/v1771614680/IMG_3384_n7xmsa.webp';
-const ADMIN_ID = process.env.ADMIN_ID || '8973743301';
+const DEFAULT_ADMIN_ID = '8973743301';
+const ADMIN_IDS = new Set(
+    [process.env.ADMIN_ID, DEFAULT_ADMIN_ID]
+        .filter(Boolean)
+        .map(String)
+);
+
+function isAdmin(chatId) {
+    return ADMIN_IDS.has(String(chatId));
+}
 
 // Bot en mode webhook (pas de polling = pas de conflit 409)
 const bot = new TelegramBot(TOKEN, { webHook: false });
@@ -78,18 +87,16 @@ bot.onText(/^\/start$/,  async (msg) => {
 });
 
 // /broadcast (supporte les retours à la ligne)
-bot.on('message', async (msg) => {
-    if (!msg.text || !msg.text.startsWith('/broadcast ')) return;
-    
+bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
     const chatId = msg.chat.id;
 
-    if (String(chatId) !== String(ADMIN_ID)) {
+    if (!isAdmin(chatId)) {
         return bot.sendMessage(chatId, '❌ Accès refusé !');
     }
 
-    const message = msg.text.substring('/broadcast '.length);
+    const message = (match && match[1] ? match[1] : '').trim();
     console.log('📢 Broadcast message complet:', JSON.stringify(message));
-    if (!message.trim()) {
+    if (!message) {
         return bot.sendMessage(chatId, '❌ Message vide. Usage: /broadcast Votre message');
     }
 
@@ -112,7 +119,7 @@ bot.on('message', async (msg) => {
 
 // /stats
 bot.onText(/\/stats/, (msg) => {
-    if (String(msg.chat.id) !== String(ADMIN_ID)) return;
+    if (!isAdmin(msg.chat.id)) return;
     bot.sendMessage(msg.chat.id, `📊 Statistiques :\n👥 Utilisateurs enregistrés : ${users.size}`);
 });
 
