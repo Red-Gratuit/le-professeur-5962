@@ -35,8 +35,29 @@ bot.on('message', (msg) => {
     const text = msg?.text || '';
     console.log('📥 Message reçu:', { chatId: msg.chat?.id, userId: msg.from?.id, text });
 });
-bot.on('polling_error', (error) => {
-    console.error('❌ Erreur polling Telegram:', error);
+bot.on('polling_error', async (error) => {
+    console.error('❌ Erreur polling Telegram:', error && error.message ? error.message : error);
+
+    const messageStr = String(error && (error.response?.body || error.message || error));
+
+    // Handle 409 conflict when another getUpdates is running or a webhook is set
+    if (messageStr.includes('409') || messageStr.includes('terminated by other getUpdates') || messageStr.includes('Conflict')) {
+        console.log('⚠️ Détecté 409 Conflict — tentative de suppression du webhook et redémarrage du polling');
+        try {
+            await bot.deleteWebHook();
+            console.log('🧹 Webhook supprimé, redémarrage du polling dans 1.5s...');
+            setTimeout(() => {
+                try {
+                    bot.startPolling();
+                    console.log('🤖 Polling redémarré');
+                } catch (e) {
+                    console.error('❌ Échec redémarrage polling:', e && e.message ? e.message : e);
+                }
+            }, 1500);
+        } catch (e) {
+            console.error('❌ Échec suppression webhook après 409:', e && e.message ? e.message : e);
+        }
+    }
 });
 
 // ===== PERSISTANCE DES UTILISATEURS =====
