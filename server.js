@@ -29,8 +29,8 @@ function getMessageUserId(msg) {
     return msg?.from?.id ?? msg?.chat?.id;
 }
 
-// Bot en mode polling pour éviter les soucis de webhook sur Railway
-const bot = new TelegramBot(TOKEN, { polling: true });
+// Bot en mode non-starté (nous démarrons polling explicitement)
+const bot = new TelegramBot(TOKEN, { polling: false });
 bot.on('message', (msg) => {
     const text = msg?.text || '';
     console.log('📥 Message reçu:', { chatId: msg.chat?.id, userId: msg.from?.id, text });
@@ -148,6 +148,7 @@ bot.onText(/^\/broadcast(?:\s+(.+))?$/, async (msg, match) => {
             success++;
         } catch(e) {
             fail++;
+            console.error('❌ Erreur envoi broadcast vers', userId, e && (e.response?.body || e.message || e));
         }
     }
 
